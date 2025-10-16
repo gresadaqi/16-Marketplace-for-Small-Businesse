@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
   SafeAreaView,
   View,
@@ -43,12 +44,10 @@ export default function App() {
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Basket</Text>
-        <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=200&auto=format&fit=crop",
-          }}
-          style={styles.avatar}
-        />
+        <View style={styles.avatar}>
+  <Ionicons name="person" size={22} color="#fff" />
+</View>
+
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -144,7 +143,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerTitle: { color: "white", fontSize: 28, fontWeight: "800" },
-  avatar: { width: 32, height: 32, borderRadius: 999, borderWidth: 2, borderColor: "#fff" },
+avatar: {
+  width: 32,
+  height: 32,
+  borderRadius: 999,
+  borderWidth: 2,
+  borderColor: "#fff",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.2)",
+},
 
   /* Cart item */
   card: {
