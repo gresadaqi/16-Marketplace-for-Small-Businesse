@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import NavBar from "../components/NavBar"; 
 import {
   SafeAreaView,
   View,
@@ -31,7 +32,7 @@ const INITIAL_ITEMS = [
     img: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=600&auto=format&fit=crop",
   },
 ];
-
+const NAV_H = 76; 
 export default function YourBasket() {
   const [items, setItems] = useState(INITIAL_ITEMS);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -110,7 +111,8 @@ export default function YourBasket() {
       </View>
 
       {/* CONTENT */}
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: NAV_H + 24 }]} 
+      >
         {items.map((it) => (
           <View key={it.id} style={styles.card}>
             <Image source={{ uri: it.img }} style={styles.cardImg} />
@@ -172,7 +174,12 @@ export default function YourBasket() {
           </Pressable>
         </View>
       </ScrollView>
-
+ <NavBar
+        active="basket"
+        onHome={() => console.log("Go Home")}
+        onBasket={() => console.log("Already Basket")}
+        onProfile={() => console.log("Go Profile")}
+      />
       {/* MODALS */}
       <Modal
         visible={confirmOpen}
