@@ -1,12 +1,13 @@
 {
   "expo": {
-    "name": "MarketplaceForSmallBusinesses",
-    "slug": "MarketplaceForSmallBusinesses",
+    "name": "Marketplace",
+    "slug": "marketplace",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -24,6 +25,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "platforms": ["android", "ios", "web"]
   }
 }

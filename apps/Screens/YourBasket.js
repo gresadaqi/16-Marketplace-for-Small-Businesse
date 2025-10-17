@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   SafeAreaView,
@@ -9,10 +9,13 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  Modal,
+  TextInput,
+  Platform,
 } from "react-native";
 
-// --- MOCK DATA (ndrysho sipas qejfit)
-const ITEMS = [
+/* ---------- DATA DEMO ---------- */
+const INITIAL_ITEMS = [
   {
     id: "1",
     title: "T Shirts",
@@ -29,7 +32,14 @@ const ITEMS = [
   },
 ];
 
-export default function App() {
+export default function YourBasket() {
+  const [items, setItems] = useState(INITIAL_ITEMS);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [codAgree, setCodAgree] = useState(false);
+
   const dateStr = useMemo(() => {
     const d = new Date();
     const dd = String(d.getDate()).padStart(2, "0");
@@ -38,23 +48,70 @@ export default function App() {
     return `${dd}/${mm}/${yyyy}`;
   }, []);
 
-  const total = ITEMS.reduce((s, it) => s + it.price, 0);
+  const total = useMemo(
+    () => items.reduce((s, it) => s + it.price, 0),
+    [items]
+  );
+
+  const handleRemove = useCallback((id) => {
+    setItems((prev) => prev.filter((x) => x.id !== id));
+  }, []);
+
+  const openCheckout = useCallback(() => {
+    if (items.length === 0) {
+      Alert.alert("Basket is empty", "Shto diçka para se të vazhdosh.");
+      return;
+    }
+    setConfirmOpen(true);
+  }, [items.length]);
+
+  const continueToDetails = useCallback(() => {
+    setConfirmOpen(false);
+    setDetailsOpen(true);
+  }, []);
+
+  const resetForm = () => {
+    setAddress("");
+    setPhone("");
+    setCodAgree(false);
+  };
+
+  const placeOrder = useCallback(() => {
+    const phoneOk = phone.replace(/\D/g, "").length >= 8;
+    if (!address.trim()) {
+      Alert.alert("Kujdes", "Shkruaj adresën e dorëzimit.");
+      return;
+    }
+    if (!phoneOk) {
+      Alert.alert("Kujdes", "Shkruaj një numër telefoni të vlefshëm.");
+      return;
+    }
+    if (!codAgree) {
+      Alert.alert("Kujdes", "Duhet të pranosh pagesën CASH në dorëzim.");
+      return;
+    }
+
+    setDetailsOpen(false);
+    Alert.alert(
+      "Porosia u vendos",
+      `Totali: $${total}\nAdresa: ${address}\nTel: ${phone}\nPagesa: Cash on Delivery`
+    );
+    resetForm();
+  }, [address, phone, codAgree, total]);
 
   return (
     <SafeAreaView style={styles.screen}>
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Basket</Text>
-
-        {/* Ikona standarde e profilit */}
         <View style={styles.avatar}>
           <Ionicons name="person" size={22} color="#fff" />
         </View>
       </View>
 
+      {/* CONTENT */}
       <ScrollView contentContainerStyle={styles.content}>
-        {/* LISTA E ARTIKUJVE */}
-        {ITEMS.map((it) => (
+        {items.map((it) => (
           <View key={it.id} style={styles.card}>
             <Image source={{ uri: it.img }} style={styles.cardImg} />
             <View style={styles.cardInfo}>
@@ -65,9 +122,9 @@ export default function App() {
               </View>
             </View>
 
-            {/* Delete item (touchable) */}
+            {/* DELETE */}
             <Pressable
-              onPress={() => Alert.alert("Removed", `U hoq: ${it.title}`)}
+              onPress={() => handleRemove(it.id)}
               style={({ pressed }) => [styles.deleteWrap, pressed && styles.pressed]}
               android_ripple={{ color: "rgba(212,55,44,0.15)" }}
             >
@@ -81,8 +138,7 @@ export default function App() {
           <Text style={styles.summaryTitle}>Order Summary</Text>
           <Text style={styles.summaryDate}>{dateStr}</Text>
 
-          {/* rreshtat */}
-          {ITEMS.map((it) => (
+          {items.map((it) => (
             <View key={`s-${it.id}`} style={styles.sumRow}>
               <Text style={styles.sumLabel}>{it.title} L</Text>
               <View style={styles.sumLine} />
@@ -90,74 +146,141 @@ export default function App() {
             </View>
           ))}
 
-          {/* total */}
           <View style={[styles.sumRow, { marginTop: 6 }]}>
             <Text style={[styles.sumLabel, { fontWeight: "800" }]}>Total</Text>
             <View style={styles.sumLine} />
             <Text style={[styles.sumVal, { fontWeight: "800" }]}>${total}</Text>
           </View>
 
-          {/* Check Out (touchable) */}
           <Pressable
-            onPress={() => Alert.alert("Checkout", "Proceed to payment")}
-            style={({ pressed }) => [styles.checkoutBtn, pressed && styles.pressed]}
-            android_ripple={{ color: "rgba(0,0,0,0.08)" }}
+            onPress={openCheckout}
+            disabled={items.length === 0}
+            style={({ pressed }) => [
+              styles.checkoutBtn,
+              items.length === 0 && styles.checkoutBtnDisabled,
+              pressed && items.length > 0 && styles.pressed,
+            ]}
           >
-            <Text style={styles.checkoutText}>Check Out</Text>
+            <Text
+              style={[
+                styles.checkoutText,
+                items.length === 0 && { opacity: 0.7 },
+              ]}
+            >
+              Check Out
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
 
-      {/* BOTTOM TABS (touchable) */}
-      <View style={styles.tabs}>
-        <Pressable
-          style={({ pressed }) => [styles.tabItem, pressed && styles.pressedLight]}
-          onPress={() => Alert.alert("Home", "Shko te Home")}
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-        >
-          <Text style={styles.tabIcon}>🏠</Text>
-          <Text style={styles.tabLabel}>Home</Text>
-        </Pressable>
+      {/* MODALS */}
+      <Modal
+        visible={confirmOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setConfirmOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Konfirmo blerjen?</Text>
+            <Text style={styles.modalText}>
+              Do të vazhdosh me porosinë me total{" "}
+              <Text style={{ fontWeight: "800" }}>${total}</Text>.
+            </Text>
 
-        <Pressable
-          style={({ pressed }) => [styles.centerTab, pressed && styles.pressedLight]}
-          onPress={() => Alert.alert("Basket", "Je në Basket")}
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-        >
-          <View style={styles.centerIconWrap}>
-            <Text style={styles.centerIcon}>🛍️</Text>
+            <View style={styles.modalRow}>
+              <Pressable
+                onPress={() => setConfirmOpen(false)}
+                style={({ pressed }) => [styles.modalBtnLight, pressed && styles.pressed]}
+              >
+                <Text style={styles.modalBtnLightText}>Anulo</Text>
+              </Pressable>
+              <Pressable
+                onPress={continueToDetails}
+                style={({ pressed }) => [styles.modalBtn, pressed && styles.pressed]}
+              >
+                <Text style={styles.modalBtnText}>Vazhdo</Text>
+              </Pressable>
+            </View>
           </View>
-          <Text style={styles.tabLabelActive}>Basket</Text>
-        </Pressable>
+        </View>
+      </Modal>
 
-        <Pressable
-          style={({ pressed }) => [styles.tabItem, pressed && styles.pressedLight]}
-          onPress={() => Alert.alert("Profile", "Hap profilin")}
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-        >
-          <Text style={styles.tabIcon}>👤</Text>
-          <Text style={styles.tabLabel}>Profile</Text>
-        </Pressable>
-      </View>
+      {/* DETAJET */}
+      <Modal
+        visible={detailsOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setDetailsOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { paddingBottom: 16 }]}>
+            <Text style={styles.modalTitle}>Detajet e Porosisë</Text>
+
+            <Text style={styles.label}>Adresa e dorëzimit</Text>
+            <TextInput
+              placeholder="Rruga, Nr, Qyteti"
+              value={address}
+              onChangeText={setAddress}
+              style={styles.input}
+              multiline
+            />
+
+            <Text style={styles.label}>Numri i telefonit</Text>
+            <TextInput
+              placeholder="+383 44 000 000"
+              keyboardType={Platform.OS === "web" ? "default" : "phone-pad"}
+              value={phone}
+              onChangeText={setPhone}
+              style={styles.input}
+            />
+
+            <Pressable
+              onPress={() => setCodAgree((v) => !v)}
+              style={({ pressed }) => [styles.checkRow, pressed && styles.pressedLight]}
+            >
+              <View style={[styles.checkbox, codAgree && styles.checkboxOn]}>
+                {codAgree && <Ionicons name="checkmark" size={16} color="#1A1A1A" />}
+              </View>
+              <Text style={styles.checkText}>
+                Pajtohem që pagesa bëhet <Text style={{ fontWeight: "800" }}>CASH</Text> në dorëzim
+              </Text>
+            </Pressable>
+
+            <View style={styles.modalRow}>
+              <Pressable
+                onPress={() => setDetailsOpen(false)}
+                style={({ pressed }) => [styles.modalBtnLight, pressed && styles.pressed]}
+              >
+                <Text style={styles.modalBtnLightText}>Mbrapa</Text>
+              </Pressable>
+              <Pressable
+                onPress={placeOrder}
+                style={({ pressed }) => [styles.modalBtn, pressed && styles.pressed]}
+              >
+                <Text style={styles.modalBtnText}>Vendos Porosinë</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-/* ----------------- STYLES ----------------- */
+/* ---------------- STYLES ---------------- */
 const GREEN = "#2E5E2D";
 const GREEN_BORDER = "#2E6E31";
-const BEIGE = "#DCC9A8"; // background
+const BEIGE = "#DCC9A8";
 const CARD_BEIGE = "#E8D8BF";
 const CREAM = "#FAF2E7";
 const DARK = "#1A1A1A";
-const PRICE_BG = "#3B2E28"; // kafe e errët për pill të çmimit
+const PRICE_BG = "#3B2E28";
 const RED = "#D4372C";
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: BEIGE },
-  content: { padding: 16, paddingBottom: 110, gap: 14 },
-
-  /* Header */
+  content: { padding: 16, paddingBottom: 24, gap: 14 },
   header: {
     height: 64,
     backgroundColor: GREEN,
@@ -177,8 +300,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.2)",
   },
-
-  /* Cart item */
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -189,12 +310,7 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 12,
   },
-  cardImg: {
-    width: 64,
-    height: 64,
-    borderRadius: 10,
-    backgroundColor: "#ddd",
-  },
+  cardImg: { width: 64, height: 64, borderRadius: 10 },
   cardInfo: { flex: 1 },
   cardTitle: { color: GREEN, fontSize: 16, fontWeight: "800" },
   cardBrand: { color: "#5A5A5A", marginTop: 2 },
@@ -211,8 +327,6 @@ const styles = StyleSheet.create({
   priceText: { color: "white", fontWeight: "800" },
   deleteWrap: { padding: 8 },
   deleteText: { color: RED, fontSize: 22, fontWeight: "900" },
-
-  /* Summary */
   summary: {
     backgroundColor: CREAM,
     borderRadius: 18,
@@ -221,11 +335,7 @@ const styles = StyleSheet.create({
   },
   summaryTitle: { fontSize: 18, fontWeight: "800", textAlign: "center" },
   summaryDate: { textAlign: "center", color: "#777", marginTop: 4, marginBottom: 10 },
-  sumRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 4,
-  },
+  sumRow: { flexDirection: "row", alignItems: "center", marginVertical: 4 },
   sumLabel: { color: DARK },
   sumLine: {
     flex: 1,
@@ -236,52 +346,80 @@ const styles = StyleSheet.create({
     height: 1,
   },
   sumVal: { color: DARK },
-
   checkoutBtn: {
     marginTop: 14,
     height: 44,
     borderRadius: 999,
-    backgroundColor: "#D9D9D9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkoutText: {
-    color: "#5E6F59",
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-
-  /* Bottom tabs */
-  tabs: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 76,
-    backgroundColor: GREEN,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    paddingBottom: 8,
-  },
-  tabItem: { alignItems: "center", justifyContent: "center" },
-  tabIcon: { fontSize: 18, color: "white" },
-  tabLabel: { fontSize: 12, color: "white", marginTop: 4 },
-
-  centerTab: { alignItems: "center", justifyContent: "center" },
-  centerIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
     backgroundColor: "#ADC97F",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 2,
   },
-  centerIcon: { fontSize: 22 },
-  tabLabelActive: { fontSize: 12, color: "white" },
-
-  /* feedback */
+  checkoutBtnDisabled: { backgroundColor: "#D9D9D9" },
+  checkoutText: { color: "#1a1a1a", fontWeight: "800", letterSpacing: 1 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.98 }] },
-  pressedLight: { opacity: 0.8 },
+  pressedLight: { opacity: 0.85 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 540,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 18,
+    gap: 12,
+  },
+  modalTitle: { fontSize: 20, fontWeight: "800", textAlign: "center" },
+  modalText: { color: "#222", textAlign: "center" },
+  modalRow: {
+    marginTop: 6,
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end",
+  },
+  modalBtn: {
+    paddingHorizontal: 16,
+    height: 44,
+    backgroundColor: "#ADC97F",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBtnText: { fontWeight: "800", color: "#1A1A1A" },
+  modalBtnLight: {
+    paddingHorizontal: 16,
+    height: 44,
+    backgroundColor: "#EEE",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBtnLightText: { fontWeight: "700", color: "#333" },
+  label: { fontWeight: "700", marginTop: 6 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#DDD",
+    backgroundColor: "#FAFAFA",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === "web" ? 10 : 8,
+    minHeight: 42,
+  },
+  checkRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 10 },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    backgroundColor: "#EEE",
+    borderWidth: 1,
+    borderColor: "#CCC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxOn: { backgroundColor: "#CFEA78", borderColor: "#B7D85F" },
+  checkText: { color: "#222" },
 });
