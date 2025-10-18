@@ -112,11 +112,13 @@ export default function ProductForm() {
 const styles = StyleSheet.create({
   container: {
     gap: 16,
+    padding: 10,
   },
   label: {
     fontWeight: "700",
     color: "#2E5E2D",
     fontSize: 16,
+
     
   },
   input: {
@@ -171,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#DCC9A8",
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 160,
+    marginLeft: 140,
   },
   plus: {
     color: "#2E5E2D",

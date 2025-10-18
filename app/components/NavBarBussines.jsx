@@ -1,50 +1,50 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Image, StyleSheet, Platform } from "react-native";
-import { useRouter } from "expo-router";
 import prdImage from "../../assets/Picture3.png";
 import prdImage1 from "../../assets/Picture4.png";
 import prdImage2 from "../../assets/Picture5.png";
-
 
 const GREEN = "#1b4d1aff";
 
 export default function NavBarBussines() {
   const [activeTab, setActiveTab] = useState("home");
-  const router = useRouter();
 
   return (
     <View style={styles.tabs}>
+      {/* HOME */}
       <TouchableOpacity
         style={[styles.tabItem, activeTab === "home" && styles.activeTab]}
-        onPress={() => {
-          setActiveTab("home");
-          router.push("/HomeScreen"); 
-        }}
+        onPress={() => setActiveTab("home")}
+        activeOpacity={0.8}
       >
-        <Image source={prdImage} style={{ width: 40, height: 40, borderRadius: 10 }} />
-        <Text style={[styles.tabLabel, activeTab === "home" && styles.activeText]}>Home</Text>
+        <Image source={prdImage} style={styles.icon} />
+        <Text style={[styles.tabLabel, activeTab === "home" && styles.activeText]}>
+          Home
+        </Text>
       </TouchableOpacity>
 
+      {/* ADD */}
       <TouchableOpacity
         style={[styles.tabItem, activeTab === "add" && styles.activeTab]}
-        onPress={() => {
-          setActiveTab("add");
-          router.push("/addProduct");
-        }}
+        onPress={() => setActiveTab("add")}
+        activeOpacity={0.8}
       >
-             <Image source={prdImage2} style={{ width: 40, height: 40, borderRadius: 10 }} />
-        <Text style={[styles.tabLabel, activeTab === "add" && styles.activeText]}>Add</Text>
+        <Image source={prdImage2} style={styles.icon} />
+        <Text style={[styles.tabLabel, activeTab === "add" && styles.activeText]}>
+          Add
+        </Text>
       </TouchableOpacity>
 
+      {/* PROFILE */}
       <TouchableOpacity
         style={[styles.tabItem, activeTab === "profile" && styles.activeTab]}
-        onPress={() => {
-          setActiveTab("profile");
-          router.push("/profile");
-        }}
+        onPress={() => setActiveTab("profile")}
+        activeOpacity={0.8}
       >
-        <Image source={prdImage1} style={{ width: 40, height: 40, borderRadius: 10 }} />
-        <Text style={[styles.tabLabel, activeTab === "profile" && styles.activeText]}>Profile</Text>
+        <Image source={prdImage1} style={styles.icon} />
+        <Text style={[styles.tabLabel, activeTab === "profile" && styles.activeText]}>
+          Profile
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -70,6 +70,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
   },
+  icon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+  },
   tabLabel: {
     fontSize: 15,
     color: "#6fc9629d",
@@ -77,7 +82,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   activeTab: {
-    backgroundColor: "#ffffff88",
+    backgroundColor: "#ffffff44",
   },
   activeText: {
     color: "#ffffff",
