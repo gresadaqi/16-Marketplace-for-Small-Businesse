@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import ProfileIcon from '../components/ProfileIcon';
+import { Modal } from 'react-native';
 import {
   FlatList,
   Image,
@@ -16,6 +17,18 @@ import {
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
+const [selectedProduct, setSelectedProduct] = useState(null);
+const [modalVisible, setModalVisible] = useState(false);
+
+const openProductModal = (product) => {
+  setSelectedProduct(product);
+  setModalVisible(true);
+};
+
+const closeModal = () => {
+  setSelectedProduct(null);
+  setModalVisible(false);
+};
 
 
   
@@ -70,7 +83,7 @@ const renderProduct = ({ item }) => (
   <TouchableOpacity
     style={styles.productCard}
     activeOpacity={0.8}
-    onPress={() => console.log('Klikove', item.name)}
+    onPress={() => openProductModal(item)}
   >
     {}
     <View style={styles.productImageWrapper}>
@@ -146,18 +159,62 @@ return (
         contentContainerStyle={styles.productList}
         showsVerticalScrollIndicator={false}
       />
-      {filteredProducts.length === 0 && (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: -500 }}>
-    <Text style={{ color: '#462E23', fontSize: 18, fontWeight: '500' }}>
-      No products found 😔
-    </Text>
-  </View>
-)}
-    </View>
+  
 
-    {}
+    
+      {filteredProducts.length === 0 && (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: -500 }}>
+          <Text style={{ color: '#462E23', fontSize: 18, fontWeight: '500' }}>
+            No products found 😔
+          </Text>
+        </View>
+      )}
+
+  
+      {selectedProduct && (
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={closeModal}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalBox}>
+              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <Ionicons name="close" size={28} color="#462E23" />
+              </TouchableOpacity>
+
+              <Image
+                source={selectedProduct.image}
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
+
+              <Text style={styles.modalTitle}>{selectedProduct.name}</Text>
+              <Text style={styles.modalText}>
+                <Text style={{ fontWeight: 'bold' }}>From:</Text> Business Name
+              </Text>
+              <Text style={styles.modalText}>
+                <Text style={{ fontWeight: 'bold' }}>Size:</Text> L
+              </Text>
+              <Text style={styles.modalText}>
+                <Text style={{ fontWeight: 'bold' }}>Description:</Text> A simple and stylish homemade white T-shirt — soft, comfortable, and perfect for everyday wear.
+              </Text>
+
+              <View style={styles.modalFooter}>
+                <Text style={styles.modalPrice}>{selectedProduct.price}</Text>
+                <TouchableOpacity style={styles.addToCartButton}>
+                  <Text style={styles.addToCartText}>Add To Cart</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+    </View>
   </SafeAreaView>
 );
+
 
 
 }
@@ -318,4 +375,63 @@ profileIcon: {
   height: 30,
   borderRadius: 15,
 },
+
+modalContainer: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+modalBox: {
+  backgroundColor: '#FAEED8',
+  borderRadius: 20,
+  padding: 20,
+  width: '85%',
+  alignItems: 'center',
+},
+closeButton: {
+  alignSelf: 'flex-end',
+},
+modalImage: {
+  width: 220,
+  height: 220,
+  borderRadius: 12,
+  marginBottom: 15,
+  backgroundColor: '#C7E1F3',
+},
+modalTitle: {
+  fontSize: 22,
+  fontWeight: 'bold',
+  color: '#000',
+  marginBottom: 10,
+},
+modalText: {
+  fontSize: 14,
+  color: '#333',
+  marginBottom: 5,
+},
+modalFooter: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  marginTop: 15,
+},
+modalPrice: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#000',
+},
+addToCartButton: {
+  backgroundColor: '#E6E4E1',
+  borderRadius: 15,
+  paddingVertical: 8,
+  paddingHorizontal: 18,
+},
+addToCartText: {
+  color: '#2E6E3E',
+  fontWeight: 'bold',
+  letterSpacing: 1,
+},
+
   });
