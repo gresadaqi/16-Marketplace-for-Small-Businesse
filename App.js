@@ -2,7 +2,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text } from 'react-native';
 
+// Import screens
 import LoginScreen from './app/Screens/login';
 import SignUpScreen from './app/Screens/SignUp';
 import HomeScreen from './app/Screens/HomeScreen';
@@ -15,98 +17,147 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#79AC78',
-          tabBarInactiveTintColor: '#fff',
-          tabBarStyle: {
-            backgroundColor: '#2E5E2D',
-            height: 80,
-            paddingBottom: 12,
-            paddingTop: 12,
-            borderTopWidth: 3,
-            borderTopColor: '#79AC78',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -3 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 10,
-          },
-          tabBarLabelStyle: {
-            fontSize: 13,
-            marginTop: 4,
-            fontWeight: '600',
-            letterSpacing: 0.3,
-          },
-          tabBarIconStyle: {
-            marginTop: 2,
-          },
           headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: '#406A2A',
+            height: 90,
+            borderTopLeftRadius: 25,
+            borderTopRightRadius: 25,
+            borderTopWidth: 0,
+            position: 'absolute',
+            bottom: 0,
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 5,
+            paddingBottom: 8, 
+            paddingTop: 8,
+          },
+          tabBarItemStyle: {
+            marginHorizontal: 66, 
+            marginTop:15
+          },
         }}
       >
-        <Tab.Screen 
-          name="Home" 
+
+        {/*  HOME */}
+        <Tab.Screen
+          name="Home"
           component={HomeScreen}
           options={{
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons 
-                name={focused ? 'home' : 'home-outline'} 
-                size={size + 2} 
-                color={color}
+            tabBarIcon: ({ focused, size }) => (
+              <View
                 style={{
-                  shadowColor: focused ? '#79AC78' : 'transparent',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
+                  backgroundColor: focused ? '#E7E2DD' : '#406A2A', // ✅ pjesë e bar-it
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 8,
+                  paddingHorizontal: 22,
                 }}
-              />
+              >
+                <Ionicons
+                  name={focused ? 'home' : 'home-outline'}
+                  size={size + 6}
+                  color={focused ? '#6EBF68' : '#FFFFFF'}
+                />
+                <Text
+                  style={{
+                    color: '#FFF',
+                    fontSize: 13,
+                    marginTop: 5,
+                    fontWeight: '500',
+                  }}
+                >
+                  Home
+                </Text>
+              </View>
             ),
           }}
         />
-        <Tab.Screen 
-          name="Basket" 
+
+        {/*  BASKET */}
+        <Tab.Screen
+          name="Basket"
           component={YourBasket}
           options={{
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons 
-                name={focused ? 'cart' : 'cart-outline'} 
-                size={size + 2} 
-                color={color}
+            tabBarIcon: ({ focused, size }) => (
+              <View
                 style={{
-                  shadowColor: focused ? '#79AC78' : 'transparent',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
+                  backgroundColor: focused ? '#E7E2DD' : '#406A2A',
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 8,
+                  paddingHorizontal: 22,
                 }}
-              />
+              >
+                <Ionicons
+                  name={focused ? 'cart' : 'cart-outline'}
+                  size={size + 6}
+                  color={focused ? '#6EBF68' : '#FFFFFF'}
+                />
+                <Text
+                  style={{
+                    color: '#FFF',
+                    fontSize: 13,
+                    marginTop: 5,
+                    fontWeight: '500',
+                  }}
+                >
+                  Basket
+                </Text>
+              </View>
             ),
           }}
         />
-        <Tab.Screen 
-          name="Profile" 
+
+        {/*  PROFILE */}
+        <Tab.Screen
+          name="Profile"
           component={LoginScreen}
           options={{
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons 
-                name={focused ? 'person' : 'person-outline'} 
-                size={size + 2} 
-                color={color}
+            tabBarIcon: ({ focused, size }) => (
+              <View
                 style={{
-                  shadowColor: focused ? '#79AC78' : 'transparent',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
+                  backgroundColor: focused ? '#E7E2DD' : '#406A2A',
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 8,
+                  paddingHorizontal: 22,
                 }}
-              />
+              >
+                <Ionicons
+                  name={focused ? 'person' : 'person-outline'}
+                  size={size + 6}
+                  color={focused ? '#6EBF68' : '#FFFFFF'}
+                />
+                <Text
+                  style={{
+                    color: '#FFF',
+                    fontSize: 13,
+                    marginTop: 5,
+                    fontWeight: '500',
+                  }}
+                >
+                  Profile
+                </Text>
+              </View>
             ),
           }}
         />
-        <Tab.Screen 
-          name="SignUp" 
+
+        {/*  SIGNUP – HIDDEN */}
+        <Tab.Screen
+          name="SignUp"
           component={SignUpScreen}
           options={{
-            tabBarButton: () => null, 
+            tabBarButton: () => null,
           }}
         />
       </Tab.Navigator>
     </NavigationContainer>
   );
-}
