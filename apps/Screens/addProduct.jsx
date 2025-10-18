@@ -1,6 +1,6 @@
 import React from "react";
 import { SafeAreaView, View, StyleSheet } from "react-native";
-import Header from "../components/Header";
+import Header from "../components/HeaderAdd";
 import ProductForm from "../components/ProductForm";
 import  Footer from "../components/Footer";
 
