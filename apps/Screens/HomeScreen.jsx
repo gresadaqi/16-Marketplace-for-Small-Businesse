@@ -129,8 +129,12 @@ return (
       </View>
 
 
-</SafeAreaView>
-);
+      {}
+      <View style={styles.bottomContainer}></View>
+    </SafeAreaView>
+  );
+
+
 
 
 }
