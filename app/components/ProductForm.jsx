@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2E5E2D",
     fontSize: 16,
+    
   },
   input: {
     backgroundColor: "#DCC9A8",
@@ -125,6 +126,7 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 14,
     color: "#2E5E2D",
+    padding: 10
   },
   dropdownButton: {
     flexDirection: "row",
