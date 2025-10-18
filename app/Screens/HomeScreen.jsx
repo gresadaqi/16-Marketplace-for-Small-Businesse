@@ -195,10 +195,10 @@ return (
                 <Text style={{ fontWeight: 'bold' }}>From:</Text> Business Name
               </Text>
               <Text style={styles.modalText}>
-                <Text style={{ fontWeight: 'bold' }}>Size:</Text> L
+                <Text style={{ fontWeight: 'bold' }}>Size:</Text> 
               </Text>
               <Text style={styles.modalText}>
-                <Text style={{ fontWeight: 'bold' }}>Description:</Text> A simple and stylish homemade white T-shirt — soft, comfortable, and perfect for everyday wear.
+                <Text style={{ fontWeight: 'bold' }}>Description:</Text> Here will be the description for each product.
               </Text>
 
               <View style={styles.modalFooter}>
