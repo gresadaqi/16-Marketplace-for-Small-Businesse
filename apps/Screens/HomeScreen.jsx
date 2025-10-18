@@ -230,4 +230,12 @@ categoryText: {
     zIndex: 1,
   },
 
+ bottomInfoBoxSeparated: {
+  backgroundColor: '#462E23',
+  paddingVertical: 6,
+  borderRadius: 12,
+  alignItems: 'center',
+  marginTop: 8, 
+},
+
   });
