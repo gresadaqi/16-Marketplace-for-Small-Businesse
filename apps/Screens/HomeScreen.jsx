@@ -115,6 +115,9 @@ return (
    showsVerticalScrollIndicator={false} 
 />
 
+ <Text style={styles.allTitle}>All</Text>
+        <View style={styles.underline}></View>
+
 </View>
 </SafeAreaView>
 );
