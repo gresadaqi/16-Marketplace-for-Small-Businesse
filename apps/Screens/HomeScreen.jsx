@@ -105,6 +105,16 @@ return (
       <View style={styles.middleContainer}>
         <Text style={styles.categoryTitle}>Category</Text>
 
+        <FlatList
+  data={categories}
+  renderItem={renderCategory}
+  keyExtractor={(item) => item.id.toString()}
+  numColumns={4}
+  ItemSeparatorComponent={() => <View style={{ height: 15 }} />} 
+  columnWrapperStyle={{ justifyContent: 'space-between' }}     
+   showsVerticalScrollIndicator={false} 
+/>
+
 </View>
 </SafeAreaView>
 );
