@@ -189,88 +189,89 @@ export default function YourBasket() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Konfirmo blerjen?</Text>
+            <Text style={styles.modalTitle}>Confirm purchase?</Text>
             <Text style={styles.modalText}>
-              Do të vazhdosh me porosinë me total{" "}
-              <Text style={{ fontWeight: "800" }}>${total}</Text>.
-            </Text>
+  Do you want to proceed with the order totaling{" "}
+  <Text style={{ fontWeight: "800" }}>${total}</Text>?
+</Text>
 
-            <View style={styles.modalRow}>
-              <Pressable
-                onPress={() => setConfirmOpen(false)}
-                style={({ pressed }) => [styles.modalBtnLight, pressed && styles.pressed]}
-              >
-                <Text style={styles.modalBtnLightText}>Anulo</Text>
-              </Pressable>
-              <Pressable
-                onPress={continueToDetails}
-                style={({ pressed }) => [styles.modalBtn, pressed && styles.pressed]}
-              >
-                <Text style={styles.modalBtnText}>Vazhdo</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+<View style={styles.modalRow}>
+  <Pressable
+    onPress={() => setConfirmOpen(false)}
+    style={({ pressed }) => [styles.modalBtnLight, pressed && styles.pressed]}
+  >
+    <Text style={styles.modalBtnLightText}>Cancel</Text>
+  </Pressable>
+  <Pressable
+    onPress={continueToDetails}
+    style={({ pressed }) => [styles.modalBtn, pressed && styles.pressed]}
+  >
+    <Text style={styles.modalBtnText}>Continue</Text>
+  </Pressable>
+</View>
+</View>
+</View>
+</Modal>
 
-      {/* DETAJET */}
-      <Modal
-        visible={detailsOpen}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setDetailsOpen(false)}
+{/* DETAILS */}
+<Modal
+  visible={detailsOpen}
+  animationType="slide"
+  transparent
+  onRequestClose={() => setDetailsOpen(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={[styles.modalCard, { paddingBottom: 16 }]}>
+      <Text style={styles.modalTitle}>Order Details</Text>
+
+      <Text style={styles.label}>Delivery Address</Text>
+      <TextInput
+        placeholder="Street, No., City"
+        value={address}
+        onChangeText={setAddress}
+        style={styles.input}
+        multiline
+      />
+
+      <Text style={styles.label}>Phone Number</Text>
+      <TextInput
+        placeholder="+383 44 000 000"
+        keyboardType={Platform.OS === "web" ? "default" : "phone-pad"}
+        value={phone}
+        onChangeText={setPhone}
+        style={styles.input}
+      />
+
+      <Pressable
+        onPress={() => setCodAgree((v) => !v)}
+        style={({ pressed }) => [styles.checkRow, pressed && styles.pressedLight]}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { paddingBottom: 16 }]}>
-            <Text style={styles.modalTitle}>Detajet e Porosisë</Text>
-
-            <Text style={styles.label}>Adresa e dorëzimit</Text>
-            <TextInput
-              placeholder="Rruga, Nr, Qyteti"
-              value={address}
-              onChangeText={setAddress}
-              style={styles.input}
-              multiline
-            />
-
-            <Text style={styles.label}>Numri i telefonit</Text>
-            <TextInput
-              placeholder="+383 44 000 000"
-              keyboardType={Platform.OS === "web" ? "default" : "phone-pad"}
-              value={phone}
-              onChangeText={setPhone}
-              style={styles.input}
-            />
-
-            <Pressable
-              onPress={() => setCodAgree((v) => !v)}
-              style={({ pressed }) => [styles.checkRow, pressed && styles.pressedLight]}
-            >
-              <View style={[styles.checkbox, codAgree && styles.checkboxOn]}>
-                {codAgree && <Ionicons name="checkmark" size={16} color="#1A1A1A" />}
-              </View>
-              <Text style={styles.checkText}>
-                Pajtohem që pagesa bëhet <Text style={{ fontWeight: "800" }}>CASH</Text> në dorëzim
-              </Text>
-            </Pressable>
-
-            <View style={styles.modalRow}>
-              <Pressable
-                onPress={() => setDetailsOpen(false)}
-                style={({ pressed }) => [styles.modalBtnLight, pressed && styles.pressed]}
-              >
-                <Text style={styles.modalBtnLightText}>Mbrapa</Text>
-              </Pressable>
-              <Pressable
-                onPress={placeOrder}
-                style={({ pressed }) => [styles.modalBtn, pressed && styles.pressed]}
-              >
-                <Text style={styles.modalBtnText}>Vendos Porosinë</Text>
-              </Pressable>
-            </View>
-          </View>
+        <View style={[styles.checkbox, codAgree && styles.checkboxOn]}>
+          {codAgree && <Ionicons name="checkmark" size={16} color="#1A1A1A" />}
         </View>
-      </Modal>
+        <Text style={styles.checkText}>
+          I agree that the payment will be made <Text style={{ fontWeight: "800" }}>CASH</Text> on delivery
+        </Text>
+      </Pressable>
+
+      <View style={styles.modalRow}>
+        <Pressable
+          onPress={() => setDetailsOpen(false)}
+          style={({ pressed }) => [styles.modalBtnLight, pressed && styles.pressed]}
+        >
+          <Text style={styles.modalBtnLightText}>Back</Text>
+        </Pressable>
+        <Pressable
+          onPress={placeOrder}
+          style={({ pressed }) => [styles.modalBtn, pressed && styles.pressed]}
+        >
+          <Text style={styles.modalBtnText}>Place Order</Text>
+        </Pressable>
+      </View>
+    </View>
+  </View>
+</Modal>
+
     </SafeAreaView>
   );
 }
