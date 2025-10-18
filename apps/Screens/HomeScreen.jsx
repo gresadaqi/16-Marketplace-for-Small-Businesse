@@ -217,4 +217,17 @@ categoryText: {
     borderRadius: 12, 
   },
 
+  bottomInfoBox: {
+    backgroundColor: '#462E23',
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    alignItems: 'center',
+    position: 'absolute', 
+    bottom: 0,
+    width: '100%',
+    zIndex: 1,
+  },
+
   });
