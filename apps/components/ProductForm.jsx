@@ -8,7 +8,7 @@ import {
   FlatList,
   Image,
 } from "react-native";
-import productImage2 from "../assets/Picture2.png"; // foto e paracaktuar
+import productImage2 from "../assets/Picture2.png"; 
 
 export default function ProductForm() {
   const [productName, setProductName] = useState("");
