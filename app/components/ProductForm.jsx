@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#DCC9A8",
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 160,
   },
   plus: {
     color: "#2E5E2D",
