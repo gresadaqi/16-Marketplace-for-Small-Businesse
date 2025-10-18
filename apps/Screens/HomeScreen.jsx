@@ -171,4 +171,15 @@ const styles = StyleSheet.create({
   elevation: 3,
 },
 
+categoryImage: {
+  width: 100,     
+  height: 80,    
+},
+categoryText: {
+  fontSize: 13,  
+  color: '#2E6E3E',
+  marginTop: 5,
+  fontWeight: '500',
+},
+
   });
