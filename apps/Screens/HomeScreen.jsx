@@ -24,6 +24,15 @@ const categories = [
   { id: 5, name: 'Other', image: require('../../assets/others.png') },
 ];
 
+  const products = [
+    { id: 1, name: 'T Shirts', price: '$10',image: require('../../assets/maicat.png') },
+    { id: 2, name: 'Jeans', price: '$15',image: require('../../assets/trousers.png') },
+    { id: 3, name: 'Bags', price: '$25',image: require('../../assets/bag.png') },
+    { id: 4, name: 'Crochet Bag', price: '$10',image: require('../../assets/crochet.png') },
+    { id: 5, name: 'Ashtray', price: '$15', image: require('../../assets/artt.png')  },
+    { id: 6, name: 'Shell necklaces', price: '$25',image: require('../../assets/necklace.png')  },
+  ];
+
 
 const renderCategory = ({ item }) => {
   const isArt = item.name === 'Art'; 
