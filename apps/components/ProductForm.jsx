@@ -53,6 +53,33 @@ export default function ProductForm() {
         <Text style={styles.dropdownText}>{selected}</Text>
         <Text style={styles.icon}>{open ? "▲" : "▼"}</Text>
       </TouchableOpacity>
+       {open && (
+        <View style={styles.dropdownList}>
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => {
+                  setSelected(item);
+                  setOpen(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    selected === item && styles.selectedText,
+                  ]}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+         )}
+
     </View>
 
 
