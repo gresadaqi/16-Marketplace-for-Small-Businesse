@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -13,11 +13,9 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import NavBar from "../components/NavBar"; 
 
-export default function Index() {
-  const router = useRouter();
-
+export default function LoginScreen() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -68,7 +66,7 @@ export default function Index() {
     if (!ok) return;
 
     Alert.alert("Success", "Login successful!", [
-      { text: "Continue", onPress: () => router.push("/home") },
+      { text: "Continue", onPress: () => console.log("Navigate to home") },
     ]);
   };
 
@@ -107,7 +105,7 @@ export default function Index() {
             <TextInput
               style={styles.input}
               placeholder="********"
-              secureTextEntry
+              secureTextEntry={true}
               placeholderTextColor="#999"
               value={password}
               onChangeText={onChangePassword}
@@ -128,7 +126,7 @@ export default function Index() {
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={() => router.push("/signup")}>
+              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
                 <Text style={styles.signupLink}> Sign up</Text>
               </TouchableOpacity>
             </View>
@@ -136,7 +134,6 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <NavBar />
     </SafeAreaView>
   );
 }
@@ -149,19 +146,25 @@ const styles = StyleSheet.create({
 
   header: {
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 25,
     backgroundColor: "#EADFC4",
+    paddingHorizontal: 20,
   },
 
   welcome: {
-    fontSize: 18,
-    color: "#000",
+    fontSize: 20,
+    color: "#2E5E2D",
+    fontWeight: "500",
+    marginBottom: 5,
   },
 
   title: {
-    fontSize: 32,
+    fontSize: 36,
     color: "#79AC78",
     fontWeight: "bold",
+    textShadowColor: "rgba(0,0,0,0.1)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 
   scrollContainer: {
@@ -170,54 +173,82 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: "#365E32",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    paddingHorizontal: 30,
-    paddingTop: 30,
-    paddingBottom: 80,
+    backgroundColor: "#2E5E2D",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 25,
+    paddingTop: 35,
+    paddingBottom: 100,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
   },
 
   loginTitle: {
     color: "white",
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 25,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.2)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   label: {
     color: "#fff",
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: 8,
+    marginTop: 15,
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   input: {
     backgroundColor: "#EADFC4",
-    borderRadius: 25,
+    borderRadius: 15,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 15,
     color: "#333",
+    fontSize: 16,
+    borderWidth: 2,
+    borderColor: "transparent",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   errorText: {
-    color: "#FFCCCC",
-    marginTop: 5,
-    marginLeft: 8,
-    fontSize: 13,
+    color: "#FFB3B3",
+    marginTop: 8,
+    marginLeft: 10,
+    fontSize: 14,
+    fontWeight: "500",
   },
 
   forgot: {
     color: "#EADFC4",
     textAlign: "right",
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 15,
+    marginBottom: 25,
+    fontSize: 16,
+    fontWeight: "500",
   },
 
   button: {
     backgroundColor: "#79AC78",
-    borderRadius: 25,
-    paddingVertical: 10,
+    borderRadius: 15,
+    paddingVertical: 15,
     alignItems: "center",
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
   },
 
   buttonDisabled: {
@@ -228,20 +259,26 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    letterSpacing: 0.5,
   },
 
   signupContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 30,
+    marginTop: 35,
+    alignItems: "center",
   },
 
   signupText: {
     color: "#EADFC4",
+    fontSize: 16,
+    fontWeight: "500",
   },
   
   signupLink: {
-    color: "#EADFC4",
+    color: "#79AC78",
     fontWeight: "bold",
+    fontSize: 16,
+    textDecorationLine: "underline",
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -13,10 +13,9 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import NavBar from "../components/NavBar";
 
 export default function SignUp() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const [role, setRole] = useState("Client");
 
   const [name, setName] = useState("");
@@ -120,7 +119,7 @@ export default function SignUp() {
             <TextInput
               style={styles.input}
               placeholder="********"
-              secureTextEntry
+              secureTextEntry={true}
               placeholderTextColor="#999"
               value={password}
               onChangeText={onChangePassword}
@@ -174,7 +173,7 @@ export default function SignUp() {
 
             <View style={styles.signinContainer}>
               <Text style={styles.signinText}>Already have an account?</Text>
-              <TouchableOpacity onPress={() => router.push("/login")}>
+              <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                 <Text style={styles.signupLink}> Log In </Text>
               </TouchableOpacity>
             </View>
@@ -182,7 +181,6 @@ export default function SignUp() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <NavBar />
     </SafeAreaView>
   );
 }
@@ -195,19 +193,25 @@ const styles = StyleSheet.create({
 
   header: {
     alignItems: "center",
-    paddingVertical: 18,
+    paddingVertical: 25,
     backgroundColor: "#EADFC4",
+    paddingHorizontal: 20,
   },
 
   welcome: {
-    fontSize: 18,
-    color: "#000",
+    fontSize: 20,
+    color: "#2E5E2D",
+    fontWeight: "500",
+    marginBottom: 5,
   },
 
   title: {
-    fontSize: 32,
+    fontSize: 36,
     color: "#79AC78",
     fontWeight: "bold",
+    textShadowColor: "rgba(0,0,0,0.1)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 
   scrollContainer: {
@@ -216,35 +220,52 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: "#365E32",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    backgroundColor: "#2E5E2D",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     paddingHorizontal: 25,
-    paddingTop: 25,
-    paddingBottom: 80,
+    paddingTop: 35,
+    paddingBottom: 100,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
   },
 
   signupTitle: {
     color: "white",
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 15,
+    marginBottom: 25,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.2)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   label: {
     color: "#fff",
-    marginBottom: 4,
-    marginTop: 10,
-    fontSize: 14,
+    marginBottom: 8,
+    marginTop: 15,
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   input: {
     backgroundColor: "#EADFC4",
-    borderRadius: 25,
-    paddingHorizontal: 18,
-    paddingVertical: 9,
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     color: "#333",
-    fontSize: 14,
+    fontSize: 16,
+    borderWidth: 2,
+    borderColor: "transparent",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   button: {

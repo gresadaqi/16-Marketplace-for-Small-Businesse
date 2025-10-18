@@ -1,5 +1,5 @@
 
 import { registerRootComponent } from "expo";
-import addProduct from "./app/Screens/addProduct";
+import App from "./App";
 
-registerRootComponent(addProduct);
+registerRootComponent(App);

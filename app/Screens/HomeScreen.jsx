@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import NavBar from "../components/NavBar"; 
 import ProfileIcon from '../components/ProfileIcon';
 import {
   FlatList,
@@ -15,7 +14,7 @@ import {
 } from 'react-native';
 
 
-export default function Home() {
+export default function HomeScreen() {
   const [search, setSearch] = useState('');
 
 
@@ -147,9 +146,6 @@ return (
     </View>
 
     {}
-    <View style={styles.navBarWrapper}>
-      <NavBar />
-    </View>
   </SafeAreaView>
 );
 

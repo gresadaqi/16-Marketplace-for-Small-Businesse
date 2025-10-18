@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import NavBar from "../components/NavBar"; 
 import ProfileIcon from "../components/ProfileIcon";
 import {
   SafeAreaView,
@@ -174,17 +173,11 @@ export default function YourBasket() {
           </Pressable>
         </View>
       </ScrollView>
- <NavBar
-        active="basket"
-        onHome={() => console.log("Go Home")}
-        onBasket={() => console.log("Already Basket")}
-        onProfile={() => console.log("Go Profile")}
-      />
       {/* MODALS */}
       <Modal
         visible={confirmOpen}
         animationType="fade"
-        transparent
+        transparent={true}
         onRequestClose={() => setConfirmOpen(false)}
       >
         <View style={styles.modalOverlay}>
@@ -217,7 +210,7 @@ export default function YourBasket() {
 <Modal
   visible={detailsOpen}
   animationType="slide"
-  transparent
+  transparent={true}
   onRequestClose={() => setDetailsOpen(false)}
 >
   <View style={styles.modalOverlay}>
@@ -230,13 +223,13 @@ export default function YourBasket() {
         value={address}
         onChangeText={setAddress}
         style={styles.input}
-        multiline
+        multiline={true}
       />
 
       <Text style={styles.label}>Phone Number</Text>
       <TextInput
         placeholder="+383 44 000 000"
-        keyboardType={Platform.OS === "web" ? "default" : "phone-pad"}
+        keyboardType="phone-pad"
         value={phone}
         onChangeText={setPhone}
         style={styles.input}
@@ -414,7 +407,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAFAFA",
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "web" ? 10 : 8,
+    paddingVertical: 8,
     minHeight: 42,
   },
   checkRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 10 },
