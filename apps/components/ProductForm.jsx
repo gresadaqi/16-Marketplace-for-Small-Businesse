@@ -79,7 +79,15 @@ export default function ProductForm() {
           />
         </View>
          )}
-
+<Text style={styles.label}>Product Price</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter price"
+        placeholderTextColor="#6B705C"
+        keyboardType="numeric"
+        value={price}
+        onChangeText={setPrice}
+      />
     </View>
 
 
