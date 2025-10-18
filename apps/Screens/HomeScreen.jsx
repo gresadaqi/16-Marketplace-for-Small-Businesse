@@ -60,6 +60,29 @@ const renderCategory = ({ item }) => {
   );
 };
 
+const renderProduct = ({ item }) => (
+  <TouchableOpacity
+    style={styles.productCard}
+    activeOpacity={0.8}
+    onPress={() => console.log('Klikove', item.name)}
+  >
+    {}
+    <View style={styles.productImageWrapper}>
+      <Image
+        source={item.image}
+        style={styles.productImageNew}
+        resizeMode="cover"
+      />
+    </View>
+
+    {}
+    <View style={styles.bottomInfoBoxSeparated}>
+      <Text style={styles.productNameNew}>{item.name}</Text>
+      <Text style={styles.productPriceNew}>{item.price}</Text>
+    </View>
+  </TouchableOpacity>
+);
+
 
 
 }
