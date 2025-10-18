@@ -19,4 +19,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#d7ceb2ff" ,
   },
-  });
+  formWrapper: {
+    margin: 20,
+    padding: 20,
+    backgroundColor: "#dedbcfff", // ngjyra e container-it të formës
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    
+  },
+});
+  
