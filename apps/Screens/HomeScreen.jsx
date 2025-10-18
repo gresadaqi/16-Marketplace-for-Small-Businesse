@@ -134,7 +134,15 @@ return (
     </SafeAreaView>
   );
 
-
-
-
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F7E7C8' },
+  topContainer: {
+    backgroundColor: '#2E6E3E',
+    padding: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+
+  });
