@@ -144,5 +144,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
+   searchBar: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#e2d3b2ff',
+  borderRadius: 25,
+  paddingHorizontal: 15,
+  height: 40,
+  width: '70%',        
+  alignSelf: 'center', 
+  marginRight:120
+},
+  searchInput: { flex: 1, color: '#333' },
+
 
   });
