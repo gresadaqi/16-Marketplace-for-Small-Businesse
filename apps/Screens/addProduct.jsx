@@ -2,7 +2,7 @@ import React from "react";
 import { SafeAreaView, View, StyleSheet } from "react-native";
 import Header from "../components/HeaderAdd";
 import ProductForm from "../components/ProductForm";
-import  Footer from "../components/Footer";
+
 
 export default function App() {
   return (
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   formWrapper: {
     margin: 20,
     padding: 20,
-    backgroundColor: "#dedbcfff", // ngjyra e container-it të formës
+    backgroundColor: "#dedbcfff", 
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
