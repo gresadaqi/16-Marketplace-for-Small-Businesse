@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import NavBar from "../components/NavBar"; 
 import {
   FlatList,
   Image,
@@ -11,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
 
 export default function Home() {
   const [search, setSearch] = useState('');
@@ -84,55 +86,59 @@ const renderProduct = ({ item }) => (
 );
 
 return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+  <SafeAreaView style={styles.container}>
+    <StatusBar barStyle="light-content" />
 
-      {}
-      <View style={styles.topContainer}>
-        <View style={styles.searchBar}>
-          <TextInput
-            placeholder="Search here ..."
-            placeholderTextColor="#999"
-            style={styles.searchInput}
-            value={search}
-            onChangeText={setSearch}
-          />
-          <Ionicons name="search" size={20} color="#333" />
-        </View>
-      </View>
-
-      {}
-      <View style={styles.middleContainer}>
-        <Text style={styles.categoryTitle}>Category</Text>
-
-        <FlatList
-  data={categories}
-  renderItem={renderCategory}
-  keyExtractor={(item) => item.id.toString()}
-  numColumns={4}
-  ItemSeparatorComponent={() => <View style={{ height: 15 }} />} 
-  columnWrapperStyle={{ justifyContent: 'space-between' }}     
-   showsVerticalScrollIndicator={false} 
-/>
-
- <Text style={styles.allTitle}>All</Text>
-        <View style={styles.underline}></View>
-
-        <FlatList
-          data={products}
-          renderItem={renderProduct}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={3}
-          contentContainerStyle={styles.productList}
-           showsVerticalScrollIndicator={false} 
+    {/* Search bar */}
+    <View style={styles.topContainer}>
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search here ..."
+          placeholderTextColor="#999"
+          style={styles.searchInput}
+          value={search}
+          onChangeText={setSearch}
         />
+        <Ionicons name="search" size={20} color="#333" />
       </View>
+    </View>
 
+    {}
+    <View style={styles.contentContainer}>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <Text style={styles.categoryTitle}>Category</Text>
+            <FlatList
+              data={categories}
+              renderItem={renderCategory}
+              keyExtractor={(item) => item.id.toString()}
+              numColumns={4}
+              ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              showsVerticalScrollIndicator={false}
+            />
 
-      {}
-      <View style={styles.bottomContainer}></View>
-    </SafeAreaView>
-  );
+            <Text style={styles.allTitle}>All</Text>
+            <View style={styles.underline}></View>
+          </>
+        }
+        data={products}
+        renderItem={renderProduct}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={3}
+        contentContainerStyle={styles.productList}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+
+    {}
+    <View style={styles.navBarWrapper}>
+      <NavBar />
+    </View>
+  </SafeAreaView>
+);
+
 
 }
 
@@ -250,5 +256,16 @@ productNameNew: {
     fontWeight: '500',
     marginTop: 2,
   },
+contentContainer: {
+  flex: 1,
+  padding: 20,
+  marginBottom: 60, 
+},
 
+navBarWrapper: {
+  position: 'absolute',
+  bottom: 0,
+  width: '100%',
+  backgroundColor: '#2E6E3E',
+},
   });
