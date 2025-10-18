@@ -109,5 +109,88 @@ export default function ProductForm() {
     </View>
   );
 }
+const styles = StyleSheet.create({
+  container: {
+    gap: 16,
+  },
+  label: {
+    fontWeight: "700",
+    color: "#2E5E2D",
+    fontSize: 16,
+  },
+  input: {
+    backgroundColor: "#DCC9A8",
+    borderRadius: 30,
+    paddingHorizontal: 16,
+    height: 40,
+    fontSize: 14,
+    color: "#2E5E2D",
+  },
+  dropdownButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#DCC9A8",
+    borderRadius: 30,
+    paddingHorizontal: 16,
+    height: 44,
+  },
+  dropdownText: {
+    color: "#2E5E2D",
+    fontWeight: "600",
+  },
+  icon: {
+    color: "#2E5E2D",
+    fontSize: 14,
+  },
+  dropdownList: {
+    backgroundColor: "#FAF2E7",
+    borderRadius: 12,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: "#C9BDA7",
+  },
+  option: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  optionText: {
+    color: "#2E5E2D",
+    fontSize: 15,
+  },
+  selectedText: {
+    fontWeight: "bold",
+    color: "#1B3C1A",
+  },
+  uploadButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 50,
+    backgroundColor: "#DCC9A8",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  plus: {
+    color: "#2E5E2D",
+    fontSize: 24,
+    fontWeight: "bold",
+    alignItems: "center",
+    
+  },
+  postBtn: {
+    marginTop: 20,
+    backgroundColor: "#DCC9A8",
+    borderRadius: 30,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    
+  },
+  postText: {
+    color: "#2E5E2D",
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
+});
 
 
