@@ -238,4 +238,17 @@ categoryText: {
   marginTop: 8, 
 },
 
+productNameNew: {
+    fontSize: 13,
+    color: '#fff',
+    fontWeight: '600',
+  },
+
+  productPriceNew: {
+    fontSize: 11,
+    color: '#F7E7C8', 
+    fontWeight: '500',
+    marginTop: 2,
+  },
+
   });
