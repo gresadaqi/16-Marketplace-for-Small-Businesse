@@ -279,12 +279,42 @@ const styles = StyleSheet.create({
     color: "#EADFC4",
     fontWeight: "bold",
   },
-  
+
   errorText: {
     color: "#FFCCCC",
     marginTop: 6,
     marginBottom: 2,
     marginLeft: 6,
     fontSize: 13,
+  },
+
+    roleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 10,
+  },
+
+  roleButton: {
+    flex: 1,
+    backgroundColor: "#EADFC4",
+    borderRadius: 25,
+    paddingVertical: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
+
+  roleButtonSelected: {
+    backgroundColor: "#79AC78",
+  },
+
+  roleText: {
+    color: "#333",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  
+  roleTextSelected: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
