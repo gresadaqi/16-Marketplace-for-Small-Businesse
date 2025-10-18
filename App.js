@@ -36,7 +36,7 @@ export default function App() {
             paddingTop: 8,
           },
           tabBarItemStyle: {
-            marginHorizontal: 66, 
+            marginHorizontal: 68, 
             marginTop:15
           },
         }}
