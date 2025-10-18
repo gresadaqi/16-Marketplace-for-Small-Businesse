@@ -50,35 +50,35 @@ export default function ProductForm() {
         style={styles.dropdownButton}
         onPress={() => setOpen(!open)}
       >
-        <Text style={styles.dropdownText}>{selected}</Text>
-        <Text style={styles.icon}>{open ? "▲" : "▼"}</Text>
-      </TouchableOpacity>
-       {open && (
-        <View style={styles.dropdownList}>
-          <FlatList
-            data={categories}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => {
-                  setSelected(item);
-                  setOpen(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    selected === item && styles.selectedText,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-         )}
+    <Text style={styles.dropdownText}>{selected}</Text>
+    <Text style={styles.icon}>{open ? "▲" : "▼"}</Text>
+    </TouchableOpacity>
+    {open && (
+    <View style={styles.dropdownList}>
+    <FlatList
+    data={categories}
+    keyExtractor={(item) => item}
+    renderItem={({ item }) => (
+    <TouchableOpacity
+    style={styles.option}
+    onPress={() => {
+    setSelected(item);
+    setOpen(false);
+    }}
+    >
+    <Text
+    style={[
+    styles.optionText,
+    selected === item && styles.selectedText,
+    ]}
+    >
+    {item}
+    </Text>
+    </TouchableOpacity>
+     )}
+    />
+    </View>
+    )}
 <Text style={styles.label}>Product Price</Text>
       <TextInput
         style={styles.input}
@@ -87,6 +87,15 @@ export default function ProductForm() {
         keyboardType="numeric"
         value={price}
         onChangeText={setPrice}
+      />
+      <Text style={styles.label}>Description</Text>
+      <TextInput
+        style={[styles.input, { height: 80 }]}
+        placeholder="Enter description"
+        placeholderTextColor="#6B705C"
+        multiline
+        value={description}
+        onChangeText={setDescription}
       />
     </View>
 
