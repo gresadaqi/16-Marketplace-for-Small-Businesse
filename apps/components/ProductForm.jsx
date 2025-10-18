@@ -34,5 +34,27 @@ export default function ProductForm() {
       image: selectedImage,
     });
   };
-  
+    return (
+    <View style={styles.container}>
+      <Text style={styles.label}>Product Name</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter name"
+        placeholderTextColor="#6B705C"
+        value={productName}
+        onChangeText={setProductName}
+      />
+      
+      <Text style={styles.label}>Category</Text>
+      <TouchableOpacity
+        style={styles.dropdownButton}
+        onPress={() => setOpen(!open)}
+      >
+        <Text style={styles.dropdownText}>{selected}</Text>
+        <Text style={styles.icon}>{open ? "▲" : "▼"}</Text>
+      </TouchableOpacity>
+    </View>
+
+
+);
 }
