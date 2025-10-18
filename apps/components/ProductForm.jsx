@@ -97,8 +97,17 @@ export default function ProductForm() {
         value={description}
         onChangeText={setDescription}
       />
+    <Text style={styles.label}>Upload Picture</Text>
+      <TouchableOpacity style={styles.uploadButton} onPress={handlePickImage}>
+        <Text style={styles.plus}>＋</Text>
+      </TouchableOpacity>
+
+      
+      <TouchableOpacity style={styles.postBtn} onPress={handlePost}>
+        <Text style={styles.postText}>POST</Text>
+      </TouchableOpacity>
     </View>
-
-
-);
+  );
 }
+
+
