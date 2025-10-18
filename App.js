@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import your screens
 import LoginScreen from './app/Screens/login';
 import SignUpScreen from './app/Screens/SignUp';
 import HomeScreen from './app/Screens/HomeScreen';
@@ -104,7 +103,7 @@ export default function App() {
           name="SignUp" 
           component={SignUpScreen}
           options={{
-            tabBarButton: () => null, // Hide from tab bar
+            tabBarButton: () => null, 
           }}
         />
       </Tab.Navigator>
