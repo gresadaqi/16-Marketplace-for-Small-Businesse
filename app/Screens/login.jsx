@@ -78,7 +78,7 @@ export default function LoginScreen() {
 
       <View style={styles.header}>
         <Text style={styles.welcome}>Welcome to</Text>
-        <Text style={styles.title}>Artisane</Text>
+        <Text style={styles.title}>Artisané </Text>
       </View>
 
       <KeyboardAvoidingView
