@@ -36,7 +36,10 @@ const categories = [
     { id: 5, name: 'Ashtray', price: '$15', image: require('../../assets/artt.png')  },
     { id: 6, name: 'Shell necklaces', price: '$25',image: require('../../assets/necklace.png')  },
   ];
-
+ 
+  const filteredProducts = products.filter(item =>
+  item.name.toLowerCase().includes(search.toLowerCase())
+);
 
 const renderCategory = ({ item }) => {
   const isArt = item.name === 'Art'; 
@@ -137,13 +140,20 @@ return (
             <View style={styles.underline}></View>
           </>
         }
-        data={products}
+      data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         contentContainerStyle={styles.productList}
         showsVerticalScrollIndicator={false}
       />
+      {filteredProducts.length === 0 && (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: -500 }}>
+    <Text style={{ color: '#462E23', fontSize: 18, fontWeight: '500' }}>
+      No products found 😔
+    </Text>
+  </View>
+)}
     </View>
 
     {}
