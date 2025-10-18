@@ -118,7 +118,17 @@ return (
  <Text style={styles.allTitle}>All</Text>
         <View style={styles.underline}></View>
 
-</View>
+        <FlatList
+          data={products}
+          renderItem={renderProduct}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={3}
+          contentContainerStyle={styles.productList}
+           showsVerticalScrollIndicator={false} 
+        />
+      </View>
+
+
 </SafeAreaView>
 );
 
