@@ -157,5 +157,18 @@ const styles = StyleSheet.create({
 },
   searchInput: { flex: 1, color: '#333' },
 
+    middleContainer: { flex: 1, padding: 20 },
+  categoryTitle: { fontSize: 18, color: '#2E6E3E', fontWeight: 'bold', marginBottom: 10 },
+  categoryList: { gap: 15 },
+ categoryBox: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#462e23ff',
+  padding: 15,
+  borderRadius: 15,
+  width: 80,     
+  height: 75,    
+  elevation: 3,
+},
 
   });
