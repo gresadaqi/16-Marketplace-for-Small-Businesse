@@ -83,6 +83,31 @@ const renderProduct = ({ item }) => (
   </TouchableOpacity>
 );
 
+return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      {}
+      <View style={styles.topContainer}>
+        <View style={styles.searchBar}>
+          <TextInput
+            placeholder="Search here ..."
+            placeholderTextColor="#999"
+            style={styles.searchInput}
+            value={search}
+            onChangeText={setSearch}
+          />
+          <Ionicons name="search" size={20} color="#333" />
+        </View>
+      </View>
+
+      {}
+      <View style={styles.middleContainer}>
+        <Text style={styles.categoryTitle}>Category</Text>
+
+</View>
+</SafeAreaView>
+);
 
 
 }
