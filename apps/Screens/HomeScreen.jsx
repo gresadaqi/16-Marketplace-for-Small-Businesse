@@ -182,4 +182,39 @@ categoryText: {
   fontWeight: '500',
 },
 
+ allTitle: { fontSize: 16, color: '#2E6E3E', fontWeight: 'bold', marginTop: 20 },
+  underline: { height: 2, backgroundColor: '#faf8f7ff', width: 180, marginBottom: 10, marginTop: 3 }, // Ndryshuar ngjyra e vijës
+
+  productList: { gap: 10 }, 
+
+  
+
+  productCard: {
+    
+    borderRadius: 15,
+    margin: 5,
+    width: '31%', 
+    overflow: 'hidden', 
+    elevation: 3,
+    position: 'relative', 
+     
+  },
+
+  productImageWrapper: {
+    
+    width: '100%',
+    aspectRatio: 1, 
+    borderRadius: 15,
+    borderWidth: 3,
+    borderColor: '#2E6E3E',
+    overflow: 'hidden',
+    padding: 0, 
+  },
+
+  productImageNew: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12, 
+  },
+
   });
