@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import NavBar from "../components/NavBar"; 
+import ProfileIcon from '../components/ProfileIcon';
 import {
   FlatList,
   Image,
@@ -16,6 +17,7 @@ import {
 
 export default function Home() {
   const [search, setSearch] = useState('');
+
 
   
 const categories = [
@@ -89,19 +91,31 @@ return (
   <SafeAreaView style={styles.container}>
     <StatusBar barStyle="light-content" />
 
-    {/* Search bar */}
-    <View style={styles.topContainer}>
-      <View style={styles.searchBar}>
-        <TextInput
-          placeholder="Search here ..."
-          placeholderTextColor="#999"
-          style={styles.searchInput}
-          value={search}
-          onChangeText={setSearch}
-        />
-        <Ionicons name="search" size={20} color="#333" />
-      </View>
+    {}
+<View style={styles.topContainer}>
+  <View style={styles.searchRow}>
+    {}
+    <View style={styles.searchBar}>
+      <TextInput
+        placeholder="Search here ..."
+        placeholderTextColor="#999"
+        style={styles.searchInput}
+        value={search}
+        onChangeText={setSearch}
+      />
+      <Ionicons name="search" size={20} color="#333" />
     </View>
+
+    {}
+    <TouchableOpacity style={styles.profileContainer} onPress={() => console.log('Profile pressed')}>
+      <Image
+        source={require('../../assets/profile.png')}
+        style={styles.profileIcon}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+
 
     {}
     <View style={styles.contentContainer}>
@@ -144,25 +158,7 @@ return (
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F7E7C8' },
-  topContainer: {
-    backgroundColor: '#2E6E3E',
-    padding: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-   searchBar: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#e2d3b2ff',
-  borderRadius: 25,
-  paddingHorizontal: 15,
-  height: 40,
-  width: '70%',        
-  alignSelf: 'center', 
-  marginRight:120
-},
-  searchInput: { flex: 1, color: '#333' },
-
+ 
     middleContainer: { flex: 1, padding: 20 },
   categoryTitle: { fontSize: 18, color: '#2E6E3E', fontWeight: 'bold', marginBottom: 10 },
   categoryList: { gap: 15 },
@@ -267,5 +263,53 @@ navBarWrapper: {
   bottom: 0,
   width: '100%',
   backgroundColor: '#2E6E3E',
+},
+searchRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+
+topContainer: {
+  backgroundColor: '#2E6E3E',
+  paddingHorizontal: 15,
+  paddingTop: 20,
+  paddingBottom: 15,
+  // borderBottomLeftRadius: 20,
+  // borderBottomRightRadius: 20,
+},
+
+searchRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+
+searchBar: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#e2d3b2ff',
+  borderRadius: 25,
+  paddingHorizontal: 15,
+  height: 40,
+  flex: 1,              
+  marginRight: 10,       
+},
+
+searchInput: {
+  flex: 1,
+  color: '#333',
+},
+
+// profileContainer: {
+//   backgroundColor: '#e2d3b2ff',
+//   borderRadius: 20,
+//   padding: 5,
+// },
+
+profileIcon: {
+  width: 35,
+  height: 30,
+  borderRadius: 15,
 },
   });

@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import NavBar from "../components/NavBar"; 
+import ProfileIcon from "../components/ProfileIcon";
 import {
   SafeAreaView,
   View,
@@ -105,9 +106,8 @@ export default function YourBasket() {
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Basket</Text>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={22} color="#fff" />
-        </View>
+        
+      <ProfileIcon/>
       </View>
 
       {/* CONTENT */}
@@ -430,4 +430,6 @@ const styles = StyleSheet.create({
   },
   checkboxOn: { backgroundColor: "#CFEA78", borderColor: "#B7D85F" },
   checkText: { color: "#222" },
+
+  
 });
