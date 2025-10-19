@@ -6,7 +6,7 @@ Ideja kryesore është krijimi i një **tregu digjital (marketplace)** që lidh 
 
 Aplikacioni ndodhet aktualisht në **fazën e parë të zhvillimit (prototip)**, duke u fokusuar në **dizajn, rrjedhën e navigimit dhe funksionalitetet bazë**, si shfaqja e produkteve, menaxhimi i shportës dhe ndërveprimi fillestar me ndërfaqen.
 
----
+
 
 ## Ideja e Projektit
 Shumë biznese të vogla në Kosovë hasin vështirësi për shkak të **mungesës së prezencës online** dhe **mungesës së mjeteve për të ndërtuar platforma të tyre tregtare**.  
@@ -24,7 +24,6 @@ Ndërsa klientët mund të:
 
 Qëllimi kryesor është të **fuqizohen bizneset e vogla** dhe të kontribuohet në **zhvillimin digjital të ekonomisë së Kosovës**.
 
----
 
 ## Faza Aktual: Prototip (Faza 1)
 Në këtë fazë, aplikacioni përfshin:
@@ -34,7 +33,7 @@ Në këtë fazë, aplikacioni përfshin:
 - Dizajn që përshtatet në pajisje të ndryshme  
 - Prototip UI për testim dhe prezantim  
 
----
+
 
 ## Anëtarët e Projektit
 - **Festim Gashi**  
@@ -45,7 +44,7 @@ Në këtë fazë, aplikacioni përfshin:
 
 Secili anëtar ka kontribuar në **dizajnin, zhvillimin dhe planifikimin e funksionaliteteve** të aplikacionit.
 
----
+
 
 ## Qëllimi
 Qëllimi i këtij projekti është të **ndihmojë bizneset e vogla lokale në Kosovë të digjitalizohen**,  
