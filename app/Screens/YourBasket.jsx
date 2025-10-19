@@ -269,7 +269,6 @@ export default function YourBasket() {
   );
 }
 
-/* ---------------- STYLES ---------------- */
 const GREEN = "#2E5E2D";
 const GREEN_BORDER = "#2E6E31";
 const BEIGE = "#DCC9A8";
@@ -355,7 +354,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkoutBtnDisabled: { backgroundColor: "#D9D9D9" },
+  checkoutBtnDisabled: { backgroundColor: "#F7E7C8" },
   checkoutText: { color: "#1a1a1a", fontWeight: "800", letterSpacing: 1 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.98 }] },
   pressedLight: { opacity: 0.85 },
@@ -369,7 +368,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 540,
-    backgroundColor: "#fff",
+    backgroundColor: "#F7E7C8",
     borderRadius: 16,
     padding: 18,
     gap: 12,
