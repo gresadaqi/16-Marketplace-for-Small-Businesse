@@ -67,8 +67,8 @@ export default function SignUp() {
     }
     if (!ok) return;
 
-    Alert.alert("OK", `Të dhënat janë valide.\nRoli: ${role}`, [
-      { text: "OK", onPress: () => router.push("/next") },
+  Alert.alert("OK", `SignUp successfully.\nRole: ${role}`, [
+      { text: "OK", onPress: () => navigation.navigate('Profile') },
     ]);
   };
 
