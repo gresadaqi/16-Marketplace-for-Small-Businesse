@@ -123,10 +123,8 @@ return (
 
     {}
     <TouchableOpacity style={styles.profileContainer} onPress={() => console.log('Profile pressed')}>
-      <Image
-        source={require('../../assets/profile.png')}
-        style={styles.profileIcon}
-      />
+      
+       <ProfileIcon/>
     </TouchableOpacity>
   </View>
 </View>
