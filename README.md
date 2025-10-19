@@ -1,49 +1,52 @@
-# Marketplace for Small Businesses in Kosovo
+# Marketplace për Biznese të Vogla në Kosovë
 
-## Project Overview
-This project is a **mobile application prototype** built with **React Native using the Expo framework**.  
-The main idea is to create a **digital marketplace** that connects **small businesses in Kosovo** with potential customers, allowing them to **promote and sell their products online** in a simple and modern way.
+## Përmbledhje e Projektit
+Ky projekt është një **prototip i aplikacionit mobil** i ndërtuar me **React Native duke përdorur kornizën Expo**.  
+Ideja kryesore është krijimi i një **tregu digjital (marketplace)** që lidh **bizneset e vogla në Kosovë** me klientët e mundshëm, duke i lejuar ata të **promovojnë dhe shesin produktet e tyre online** në mënyrë të thjeshtë dhe moderne.
 
-The app is currently in its **first development phase (prototype stage)**, focusing on **design, navigation flow, and basic functionalities** such as product display, cart management, and simple UI interaction.
+Aplikacioni ndodhet aktualisht në **fazën e parë të zhvillimit (prototip)**, duke u fokusuar në **dizajn, rrjedhën e navigimit dhe funksionalitetet bazë**, si shfaqja e produkteve, menaxhimi i shportës dhe ndërveprimi fillestar me ndërfaqen.
 
+---
 
-## Project Idea
-Many small businesses in Kosovo struggle with limited online visibility and lack of resources to build their own e-commerce platforms.  
-Our app aims to **bridge that gap** by providing a **mobile-friendly marketplace** where local businesses can:
+## Ideja e Projektit
+Shumë biznese të vogla në Kosovë hasin vështirësi për shkak të **mungesës së prezencës online** dhe **mungesës së mjeteve për të ndërtuar platforma të tyre tregtare**.  
+Aplikacioni ynë synon të **zgjidhë këtë problem**, duke ofruar një **marketplace të lehtë për t’u përdorur në telefon**, ku bizneset lokale mund të:
 
-- Create a profile for their shop  
-- Upload and manage products  
-- Reach more local customers online  
+- Krijojnë profilin e tyre të biznesit  
+- Ngarkojnë dhe menaxhojnë produktet  
+- Arrijnë më shumë klientë vendas online  
 
-Customers can:
+Ndërsa klientët mund të:
 
-- Browse products from various small businesses  
-- Add items to their cart  
-- Support local entrepreneurs through local shopping  
+- Shfletojnë produkte nga biznese të ndryshme lokale  
+- Shtojnë artikuj në shportën e tyre  
+- Mbështesin ndërmarrësit vendorë përmes blerjeve lokale  
 
-The ultimate goal is to **empower small businesses** and contribute to the **digital growth of Kosovo’s economy**.
+Qëllimi kryesor është të **fuqizohen bizneset e vogla** dhe të kontribuohet në **zhvillimin digjital të ekonomisë së Kosovës**.
 
+---
 
-## Current Stage: Prototype (Phase 1)
-At this stage, the app includes:
+## Faza Aktual: Prototip (Faza 1)
+Në këtë fazë, aplikacioni përfshin:
 
-- Basic navigation (Home, Cart, Profile)  
-- Sample data for businesses and products  
-- Responsive design for different devices  
-- UI prototype for testing and presentation  
+- Navigim bazë (Home, Cart, Profile)  
+- Të dhëna shembull për biznese dhe produkte  
+- Dizajn që përshtatet në pajisje të ndryshme  
+- Prototip UI për testim dhe prezantim  
 
+---
 
-##  Project Members 
+## Anëtarët e Projektit
 - **Festim Gashi**  
-- **Gresa Daqi**
-- **Gresa Thaçi** 
-- **Grese Ferataj** 
-- **Jon Jashari** 
+- **Gresa Daqi**  
+- **Gresa Thaçi**  
+- **Grese Ferataj**  
+- **Jon Jashari**  
 
-Each member contributes to **design, development, and feature planning**.
+Secili anëtar ka kontribuar në **dizajnin, zhvillimin dhe planifikimin e funksionaliteteve** të aplikacionit.
 
+---
 
-##  Purpose
-The purpose of this project is to **help small local businesses in Kosovo go digital**  
-by providing them with an accessible marketplace platform that doesn’t require technical knowledge or high costs.
-
+## Qëllimi
+Qëllimi i këtij projekti është të **ndihmojë bizneset e vogla lokale në Kosovë të digjitalizohen**,  
+duke u ofruar atyre një platformë tregtare të qasshme dhe të thjeshtë që **nuk kërkon njohuri teknike apo kosto të larta zhvillimi**.
