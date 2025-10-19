@@ -11,7 +11,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 
 export default function SignUp() {
@@ -67,9 +66,7 @@ export default function SignUp() {
     }
     if (!ok) return;
 
-    Alert.alert("OK", `Të dhënat janë valide.\nRoli: ${role}`, [
-      { text: "OK", onPress: () => router.push("/next") },
-    ]);
+    navigation.navigate('Home');
   };
 
   const isFormValid = validateEmail(email) && validatePassword(password);
