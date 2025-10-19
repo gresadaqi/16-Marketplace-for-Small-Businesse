@@ -8,7 +8,6 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Alert,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -65,9 +64,7 @@ export default function LoginScreen() {
 
     if (!ok) return;
 
-    Alert.alert("Success", "Login successful!", [
-      { text: "Continue", onPress: () => console.log("Navigate to home") },
-    ]);
+    navigation.navigate('Home');
   };
 
   const isFormValid = validateEmail(email) && validatePassword(password);

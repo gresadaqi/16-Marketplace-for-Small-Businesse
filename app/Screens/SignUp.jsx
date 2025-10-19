@@ -11,7 +11,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 
 export default function SignUp() {
@@ -67,9 +66,7 @@ export default function SignUp() {
     }
     if (!ok) return;
 
-  Alert.alert("OK", `SignUp successfully.\nRole: ${role}`, [
-      { text: "OK", onPress: () => navigation.navigate('Profile') },
-    ]);
+    navigation.navigate('Home');
   };
 
   const isFormValid = validateEmail(email) && validatePassword(password);
