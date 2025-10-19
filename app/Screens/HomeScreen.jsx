@@ -368,11 +368,7 @@ searchInput: {
 //   padding: 5,
 // },
 
-profileIcon: {
-  width: 35,
-  height: 30,
-  borderRadius: 15,
-},
+
 
 modalContainer: {
   flex: 1,
