@@ -157,7 +157,11 @@ export default function ClientHome() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.pageWrap}>
+      {/* 🔽 KËTU E FIKIM SHIGJETËN VERTIKALE */}
+      <ScrollView
+        contentContainerStyle={styles.pageWrap}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Marketplace</Text>
           <Text style={styles.subtitle}>Browse products from local businesses</Text>
@@ -190,7 +194,11 @@ export default function ClientHome() {
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={closeModal}>
         <Pressable style={styles.backdrop} onPress={closeModal}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
-            <ScrollView style={{ maxHeight: 300 }}>
+            {/* 🔽 EDHE KËTU E FIKIM SHIGJETËN NË MODAL */}
+            <ScrollView
+              style={{ maxHeight: 300 }}
+              showsVerticalScrollIndicator={false}
+            >
               {selected?.imageUrl ? (
                 <Image
                   source={{ uri: selected.imageUrl }}
