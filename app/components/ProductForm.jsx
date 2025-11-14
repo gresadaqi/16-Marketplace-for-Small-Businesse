@@ -130,17 +130,25 @@ export default function ProductForm({ onSubmit, loading }) {
       />
 
       <Text style={styles.label}>Upload Picture</Text>
-      <TouchableOpacity style={styles.uploadButton} onPress={handlePickImage}>
-        <Text style={styles.plus}>＋</Text>
+
+      {/* <-- CHANGED: image now displays INSIDE the round uploadButton */}
+      <TouchableOpacity
+        style={styles.uploadButton}
+        onPress={handlePickImage}
+        activeOpacity={0.8}
+      >
+        {selectedImage ? (
+          <Image
+            source={{ uri: selectedImage.uri }}
+            style={styles.uploadImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text style={styles.plus}>＋</Text>
+        )}
       </TouchableOpacity>
 
-      {selectedImage && (
-        <Image
-          source={{ uri: selectedImage.uri }}
-          style={styles.previewImage}
-          resizeMode="cover"
-        />
-      )}
+      {/* removed the large full-width preview so image only lives inside the + button */}
 
       <TouchableOpacity
         style={styles.postBtn}
@@ -208,6 +216,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1B3C1A",
   },
+
+  /* Upload button (circle) — kept same size but now clips the image inside */
   uploadButton: {
     width: 45,
     height: 45,
@@ -216,18 +226,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
+    overflow: "hidden", // IMPORTANT: clips the image to the circle
   },
   plus: {
     color: "#2E5E2D",
     fontSize: 24,
     fontWeight: "bold",
   },
-  previewImage: {
+
+  /* Image that fills the upload button circle exactly */
+  uploadImage: {
     width: "100%",
-    height: 180,
-    borderRadius: 12,
-    marginTop: 10,
+    height: "100%",
+    borderRadius: 50, // keeps it rounded
   },
+
+  /* removed previewImage usage */
+
   postBtn: {
     marginTop: 20,
     backgroundColor: "#DCC9A8",
