@@ -248,7 +248,7 @@ export default function BusinessHome() {
                 data={filteredProducts}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
-                numColumns={3}
+                numColumns={4}
                 columnWrapperStyle={styles.gridRow}
                 contentContainerStyle={styles.gridList}
                 scrollEnabled={false}
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   productCard: {
     borderRadius: 15,
     margin: 5,
-    width: "31%",
+    width: "20%",
     overflow: "hidden",
     elevation: 3,
   },
