@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "expo-router";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
 
 const GREEN = "#2E5E2D";
 const BEIGE = "#EADFC4";
@@ -20,8 +22,6 @@ export default function ClientProfile() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  // 🔹 Lista e blerjeve – për momentin bosh
-  // kur t’lidhni checkout-in, veç thirre setPurchases(data)
   const [purchases, setPurchases] = useState([]);
 
   const handleLogout = async () => {
@@ -29,14 +29,59 @@ export default function ClientProfile() {
     router.replace("/(auth)/login");
   };
 
+  useEffect(() => {
+    const loadPurchases = async () => {
+      if (!user) return;
+
+      try {
+        const q = query(
+          collection(db, "users", user.uid, "orders"),
+          orderBy("createdAt", "desc")
+        );
+        const snap = await getDocs(q);
+        const list = [];
+
+        snap.forEach((d) => {
+          const data = d.data();
+
+          // ❗ Shfaq vetëm porositë e përfunduara
+          if (data.status !== "completed") return;
+
+          const firstItem = data.items && data.items[0];
+
+          const businessLabel =
+            firstItem?.businessName ||
+            firstItem?.businessEmail ||
+            data.businessName ||
+            data.businessEmail ||
+            firstItem?.businessId ||
+            "Unknown business";
+
+          list.push({
+            id: d.id,
+            image: firstItem?.imageUrl || null,
+            title: firstItem?.name || "Order",
+            from: businessLabel,
+            address: data.address || "",
+            total: `€${data.total || 0}`,
+          });
+        });
+
+        setPurchases(list);
+      } catch (e) {
+        console.log("Error loading purchases:", e);
+      }
+    };
+
+    loadPurchases();
+  }, [user]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={styles.container}>
-
           {/* HEADER */}
           <View style={styles.header}>
-            {/* Avatar */}
             <View style={styles.avatarOuter}>
               <Image
                 source={require("../../assets/profile.png")}
@@ -44,7 +89,6 @@ export default function ClientProfile() {
               />
             </View>
 
-            {/* User Info */}
             <View style={styles.infoContainer}>
               <Text style={styles.nameText}>
                 {user?.displayName || "Name Surname"}
@@ -53,7 +97,10 @@ export default function ClientProfile() {
                 {user?.email || "email@example.com"}
               </Text>
 
-              <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+              <TouchableOpacity
+                style={styles.signOutButton}
+                onPress={handleLogout}
+              >
                 <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
             </View>
@@ -69,15 +116,24 @@ export default function ClientProfile() {
               purchases.map((item) => (
                 <View key={item.id} style={styles.purchaseItem}>
                   <View style={styles.row}>
-                    {/* Image */}
                     <View style={styles.imageWrapper}>
-                      <Image
-                        source={{ uri: item.image }}
-                        style={styles.productImage}
-                      />
+                      {item.image ? (
+                        <Image
+                          source={{ uri: item.image }}
+                          style={styles.productImage}
+                        />
+                      ) : (
+                        <View
+                          style={[
+                            styles.productImage,
+                            { alignItems: "center", justifyContent: "center" },
+                          ]}
+                        >
+                          <Text style={{ fontSize: 10 }}>No image</Text>
+                        </View>
+                      )}
                     </View>
 
-                    {/* Info */}
                     <View style={styles.infoBox}>
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{item.title}</Text>
@@ -100,22 +156,18 @@ export default function ClientProfile() {
                     </View>
                   </View>
 
-                  {/* Separator */}
                   <View style={styles.separator} />
                 </View>
               ))
             )}
           </View>
-
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-/* ------------------------------------ */
-/*              STYLES                  */
-/* ------------------------------------ */
+/* STYLES */
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -126,8 +178,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 30,
   },
-
-  /* HEADER */
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -174,8 +224,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-
-  /* PURCHASE HISTORY */
   historyCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -205,6 +253,7 @@ const styles = StyleSheet.create({
     borderColor: GREEN,
     overflow: "hidden",
     marginRight: 12,
+    backgroundColor: "#fff",
   },
   productImage: {
     width: "100%",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,15 @@ import {
 } from "react-native";
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "expo-router";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
 
 const GREEN = "#2E5E2D";
 const BEIGE = "#EADFC4";
@@ -24,9 +33,10 @@ export default function BusinessProfile() {
   const [selectedTab, setSelectedTab] = useState("ongoing");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // LISTAT JANË BOSHE – PRODUKTET VIN MË VONË PREJ FIREBASE
   const [ongoingOrders, setOngoingOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
+
+  const businessId = user?.uid;
 
   const handleLogout = async () => {
     await logout();
@@ -36,27 +46,113 @@ export default function BusinessProfile() {
   const currentTitle =
     selectedTab === "ongoing" ? "Ongoing Orders" : "Order History";
 
-  const handleConfirm = (id) => {
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (!businessId) return;
+
+      try {
+        const q = query(
+          collection(db, "businesses", businessId, "orders"),
+          orderBy("createdAt", "desc")
+        );
+        const snap = await getDocs(q);
+
+        const ongoing = [];
+        const history = [];
+
+        snap.forEach((d) => {
+          const data = d.data();
+          const firstItem = data.items && data.items[0];
+
+          const order = {
+            id: d.id,
+            image: firstItem?.imageUrl || null,
+            title: firstItem?.name || "Order",
+            from: data.userEmail || "Unknown user",
+            address: data.address || "",
+            total: `€${data.total || 0}`,
+            status: data.status || "pending",
+            userId: data.userId,
+            userOrderId: data.userOrderId,
+          };
+
+          if (order.status === "pending") {
+            ongoing.push(order);
+          } else {
+            history.push(order);
+          }
+        });
+
+        setOngoingOrders(ongoing);
+        setHistoryOrders(history);
+      } catch (e) {
+        console.log("Error loading business orders:", e);
+      }
+    };
+
+    loadOrders();
+  }, [businessId]);
+
+  const handleConfirm = async (id) => {
+    if (!businessId) return;
+
     const order = ongoingOrders.find((o) => o.id === id);
     if (!order) return;
 
-    setOngoingOrders((prev) => prev.filter((o) => o.id !== id));
-    setHistoryOrders((prev) => [{ ...order, status: "Completed" }, ...prev]);
+    try {
+      await updateDoc(doc(db, "businesses", businessId, "orders", id), {
+        status: "completed",
+      });
+
+      if (order.userId && order.userOrderId) {
+        await updateDoc(
+          doc(db, "users", order.userId, "orders", order.userOrderId),
+          { status: "completed" }
+        );
+      }
+
+      setOngoingOrders((prev) => prev.filter((o) => o.id !== id));
+      setHistoryOrders((prev) => [
+        { ...order, status: "completed" },
+        ...prev,
+      ]);
+    } catch (e) {
+      console.log("Error confirming order:", e);
+    }
   };
 
-  const handleCancel = (id) => {
+  const handleCancel = async (id) => {
+    if (!businessId) return;
+
     const order = ongoingOrders.find((o) => o.id === id);
     if (!order) return;
 
-    setOngoingOrders((prev) => prev.filter((o) => o.id !== id));
-    setHistoryOrders((prev) => [{ ...order, status: "Cancelled" }, ...prev]);
+    try {
+      await updateDoc(doc(db, "businesses", businessId, "orders", id), {
+        status: "cancelled",
+      });
+
+      if (order.userId && order.userOrderId) {
+        await updateDoc(
+          doc(db, "users", order.userId, "orders", order.userOrderId),
+          { status: "cancelled" }
+        );
+      }
+
+      setOngoingOrders((prev) => prev.filter((o) => o.id !== id));
+      setHistoryOrders((prev) => [
+        { ...order, status: "cancelled" },
+        ...prev,
+      ]);
+    } catch (e) {
+      console.log("Error cancelling order:", e);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={styles.container}>
-
           {/* HEADER */}
           <View style={styles.header}>
             <View style={styles.avatarOuter}>
@@ -148,10 +244,24 @@ export default function BusinessProfile() {
                     <View key={item.id} style={styles.orderItem}>
                       <View style={styles.row}>
                         <View style={styles.imageWrapper}>
-                          <Image
-                            source={{ uri: item.image }}
-                            style={styles.productImage}
-                          />
+                          {item.image ? (
+                            <Image
+                              source={{ uri: item.image }}
+                              style={styles.productImage}
+                            />
+                          ) : (
+                            <View
+                              style={[
+                                styles.productImage,
+                                {
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                },
+                              ]}
+                            >
+                              <Text style={{ fontSize: 10 }}>No image</Text>
+                            </View>
+                          )}
                         </View>
 
                         <View style={styles.orderInfo}>
@@ -206,10 +316,24 @@ export default function BusinessProfile() {
                     <View key={item.id} style={styles.orderItem}>
                       <View style={styles.row}>
                         <View style={styles.imageWrapper}>
-                          <Image
-                            source={{ uri: item.image }}
-                            style={styles.productImage}
-                          />
+                          {item.image ? (
+                            <Image
+                              source={{ uri: item.image }}
+                              style={styles.productImage}
+                            />
+                          ) : (
+                            <View
+                              style={[
+                                styles.productImage,
+                                {
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                },
+                              ]}
+                            >
+                              <Text style={{ fontSize: 10 }}>No image</Text>
+                            </View>
+                          )}
                         </View>
 
                         <View style={styles.orderInfo}>
@@ -234,7 +358,8 @@ export default function BusinessProfile() {
 
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Status: </Text>
-                            {item.status}
+                            {item.status.charAt(0).toUpperCase() +
+                              item.status.slice(1)}
                           </Text>
                         </View>
                       </View>
@@ -252,9 +377,7 @@ export default function BusinessProfile() {
   );
 }
 
-/* ----------------------------------------- */
-/*                 STYLES                    */
-/* ----------------------------------------- */
+/* STYLES */
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -265,7 +388,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 30,
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -288,7 +410,6 @@ const styles = StyleSheet.create({
     height: "70%",
     resizeMode: "cover",
   },
-
   infoContainer: {
     marginLeft: 34,
   },
@@ -314,7 +435,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 15,
   },
-
   ordersCard: {
     marginTop: 12,
     backgroundColor: CARD_BEIGE,
@@ -336,7 +456,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginLeft: 8,
   },
-
   dropdown: {
     alignSelf: "flex-start",
     marginBottom: 4,
@@ -359,7 +478,6 @@ const styles = StyleSheet.create({
   dropdownTextSelected: {
     fontWeight: "700",
   },
-
   listContainer: {
     marginTop: 8,
   },
@@ -368,7 +486,6 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 6,
   },
-
   orderItem: {
     marginBottom: 10,
   },
@@ -389,7 +506,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-
   orderInfo: {
     flex: 1,
   },
@@ -408,7 +524,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
-
   infoText: {
     fontSize: 13,
     marginTop: 2,
@@ -416,19 +531,16 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontWeight: "700",
   },
-
   separator: {
     height: 2,
     backgroundColor: GREEN,
     marginTop: 10,
   },
-
   actionsRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,
   },
-
   confirmCircle: {
     width: 36,
     height: 36,
@@ -443,7 +555,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
   },
-
   cancelButton: {
     paddingHorizontal: 18,
     paddingVertical: 6,

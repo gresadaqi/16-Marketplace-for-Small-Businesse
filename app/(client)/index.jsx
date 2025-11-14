@@ -44,11 +44,13 @@ export default function ClientHome() {
     setSelected(item);
     setModalVisible(true);
   };
+
   const closeModal = () => {
     setModalVisible(false);
     setSelected(null);
   };
 
+  // ---------------- LOAD PRODUCTS ----------------
   const loadProducts = async () => {
     setLoading(true);
     setError("");
@@ -69,16 +71,20 @@ export default function ClientHome() {
     loadProducts();
   }, []);
 
+  // ---------------- WATCH CART ----------------
   useEffect(() => {
     if (!user) return;
+
     const cartRef = collection(db, "users", user.uid, "cart");
     const unsub = onSnapshot(cartRef, (snap) => {
       const ids = snap.docs.map((d) => d.id);
       setAddedProducts(ids);
     });
+
     return unsub;
   }, [user]);
 
+  // ---------------- ADD TO CART ----------------
   const handleAddToCart = async (product) => {
     if (!user) return;
     if (addedProducts.includes(product.id)) return;
@@ -92,47 +98,50 @@ export default function ClientHome() {
           price: product.price,
           imageUrl: product.imageUrl || null,
           category: product.category || null,
+
+          // info e biznesit
+          businessId: product.ownerId || null,
+          businessEmail: product.ownerEmail || null,
+          businessName: product.ownerName || "Unknown Business",
+
           createdAt: new Date().toISOString(),
         },
         { merge: true }
       );
+
       setAddedProducts((prev) => [...prev, product.id]);
     } catch (e) {
-      console.log(e);
+      console.log("Add to Cart Error:", e);
     }
   };
 
+  // ---------------- CATEGORY BAR ----------------
   const CategoryBar = () => (
     <View style={styles.catSection}>
       <Text style={styles.sectionTitle}>Category</Text>
       <View style={styles.sectionDivider} />
       <View style={styles.catRow}>
-        <View style={styles.catBtn}>
-          <View style={styles.catIcon}><Text style={styles.catEmoji}>🌀</Text></View>
-          <Text style={styles.catLabel}>All</Text>
-        </View>
-        <View style={styles.catBtn}>
-          <View style={styles.catIcon}><Text style={styles.catEmoji}>👕</Text></View>
-          <Text style={styles.catLabel}>Clothes</Text>
-        </View>
-        <View style={styles.catBtn}>
-          <View style={styles.catIcon}><Text style={styles.catEmoji}>🎒</Text></View>
-          <Text style={styles.catLabel}>Accessories</Text>
-        </View>
-        <View style={styles.catBtn}>
-          <View style={styles.catIcon}><Text style={styles.catEmoji}>🖼️</Text></View>
-          <Text style={styles.catLabel}>Art</Text>
-        </View>
-        <View style={styles.catBtn}>
-          <View style={styles.catIcon}><Text style={styles.catEmoji}>⋯</Text></View>
-          <Text style={styles.catLabel}>Other</Text>
-        </View>
+        <CatItem emoji="🌀" title="All" />
+        <CatItem emoji="👕" title="Clothes" />
+        <CatItem emoji="🎒" title="Accessories" />
+        <CatItem emoji="🖼️" title="Art" />
+        <CatItem emoji="⋯" title="Other" />
       </View>
       <Text style={[styles.sectionTitle, { marginTop: 12 }]}>All</Text>
       <View style={styles.sectionDivider} />
     </View>
   );
 
+  const CatItem = ({ emoji, title }) => (
+    <View style={styles.catBtn}>
+      <View style={styles.catIcon}>
+        <Text style={styles.catEmoji}>{emoji}</Text>
+      </View>
+      <Text style={styles.catLabel}>{title}</Text>
+    </View>
+  );
+
+  // ---------------- GRID ITEM ----------------
   const renderItem = ({ item }) => {
     return (
       <Pressable style={styles.gridItem} onPress={() => openModal(item)}>
@@ -143,28 +152,33 @@ export default function ClientHome() {
             <View style={[styles.img, { backgroundColor: "#e9e9e9" }]} />
           )}
         </View>
+
         <View style={styles.pillsWrap}>
           <View style={styles.pill}>
-            <Text style={styles.pillText} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.pillText} numberOfLines={1}>
+              {item.name}
+            </Text>
           </View>
           <View style={styles.pill}>
-            <Text style={styles.pillText}>${item.price}</Text>
+            <Text style={styles.pillText}>€{item.price}</Text>
           </View>
         </View>
       </Pressable>
     );
   };
 
+  // ---------------- UI ----------------
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* 🔽 KËTU E FIKIM SHIGJETËN VERTIKALE */}
       <ScrollView
         contentContainerStyle={styles.pageWrap}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           <Text style={styles.title}>Marketplace</Text>
-          <Text style={styles.subtitle}>Browse products from local businesses</Text>
+          <Text style={styles.subtitle}>
+            Browse products from local businesses
+          </Text>
         </View>
 
         {loading && (
@@ -172,6 +186,7 @@ export default function ClientHome() {
             <ActivityIndicator size="large" color={GREEN} />
           </View>
         )}
+
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         {!loading && !error && (
@@ -184,17 +199,19 @@ export default function ClientHome() {
               numColumns={3}
               columnWrapperStyle={styles.gridRow}
               contentContainerStyle={styles.gridList}
-              scrollEnabled={false} // handled by ScrollView
-              ListEmptyComponent={<Text style={styles.emptyText}>No products yet.</Text>}
+              scrollEnabled={false}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>No products yet.</Text>
+              }
             />
           </>
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={closeModal}>
+      {/* ---------------- MODAL ---------------- */}
+      <Modal visible={modalVisible} transparent animationType="slide">
         <Pressable style={styles.backdrop} onPress={closeModal}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
-            {/* 🔽 EDHE KËTU E FIKIM SHIGJETËN NË MODAL */}
             <ScrollView
               style={{ maxHeight: 300 }}
               showsVerticalScrollIndicator={false}
@@ -203,24 +220,28 @@ export default function ClientHome() {
                 <Image
                   source={{ uri: selected.imageUrl }}
                   style={styles.modalImage}
-                  resizeMode="contain"
                 />
-              ) : (
-                <View style={[styles.modalImage, { backgroundColor: "#e9e9e9" }]} />
-              )}
+              ) : null}
 
               <Text style={styles.modalTitle}>{selected?.name}</Text>
               <Text style={styles.modalPrice}>{selected?.price} €</Text>
-              <Text style={styles.modalOwner}>By: {selected?.ownerName || "Business"}</Text>
 
-              {selected?.category ? (
-                <Text style={styles.modalCategory}>Category: {selected.category}</Text>
-              ) : null}
+              <Text style={styles.modalOwner}>
+                By: {selected?.ownerEmail || "Unknown Business"}
+              </Text>
+
+              {selected?.category && (
+                <Text style={styles.modalCategory}>
+                  Category: {selected.category}
+                </Text>
+              )}
 
               {selected?.description ? (
                 <Text style={styles.modalDesc}>{selected.description}</Text>
               ) : (
-                <Text style={styles.modalDescMuted}>No description provided.</Text>
+                <Text style={styles.modalDescMuted}>
+                  No description provided.
+                </Text>
               )}
             </ScrollView>
 
@@ -230,16 +251,23 @@ export default function ClientHome() {
                 style={[
                   styles.modalBtn,
                   styles.addBtn,
-                  addedProducts.includes(selected?.id) && { backgroundColor: DISABLED_GRAY },
+                  addedProducts.includes(selected?.id) && {
+                    backgroundColor: DISABLED_GRAY,
+                  },
                 ]}
                 onPress={() => selected && handleAddToCart(selected)}
               >
                 <Text style={styles.modalBtnText}>
-                  {addedProducts.includes(selected?.id) ? "Added" : "Add to cart"}
+                  {addedProducts.includes(selected?.id)
+                    ? "Added"
+                    : "Add to cart"}
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.modalBtn, styles.closeBtn]} onPress={closeModal}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.closeBtn]}
+                onPress={closeModal}
+              >
                 <Text style={styles.modalBtnText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -353,7 +381,12 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontWeight: "700", color: "#222" },
   modalPrice: { fontSize: 16, color: GREEN, marginTop: 4, marginBottom: 6 },
   modalOwner: { fontSize: 12, color: "#444", marginBottom: 6 },
-  modalCategory: { fontSize: 12, color: "#1a1a1a", marginBottom: 10, fontWeight: "600" },
+  modalCategory: {
+    fontSize: 12,
+    color: "#1a1a1a",
+    marginBottom: 10,
+    fontWeight: "600",
+  },
   modalDesc: { fontSize: 14, color: "#333", lineHeight: 20 },
   modalDescMuted: { fontSize: 14, color: "#777", fontStyle: "italic" },
 

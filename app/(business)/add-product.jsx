@@ -54,7 +54,7 @@ export default function AddProductScreen() {
         price: numeric,
         description: description || "",
         imageUrl: imageUri || null,
-        ownerId: user.uid,
+        ownerId: user.uid,        // ⬅️ KY PËRDORËT SI businessId TE CART/ORDERS
         ownerEmail: user.email,
         createdAt: new Date().toISOString(),
       });
@@ -77,7 +77,6 @@ export default function AddProductScreen() {
         <ProfileIcon onPress={() => console.log("Profile clicked")} />
       </View>
 
-      {/* FIX: enable scroll on web */}
       {Platform.OS === "web" ? (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <View style={styles.formWrapper}>

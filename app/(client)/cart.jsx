@@ -32,24 +32,26 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // checkout state (nga YourBasket)
+  // checkout state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [codAgree, setCodAgree] = useState(false);
 
+  // ---------------- LOAD CART ----------------
   const loadCart = async () => {
     if (!user) return;
     setLoading(true);
     setError("");
+
     try {
       const snap = await getDocs(collection(db, "users", user.uid, "cart"));
       const list = [];
       snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
       setItems(list);
     } catch (e) {
-      console.log(e);
+      console.log("Error loading cart:", e);
       setError("Failed to load cart.");
     } finally {
       setLoading(false);
@@ -60,12 +62,14 @@ export default function CartScreen() {
     loadCart();
   }, [user]);
 
+  // ---------------- REMOVE FROM CART ----------------
   const handleRemove = async (item) => {
+    if (!user) return;
     try {
       await deleteDoc(doc(db, "users", user.uid, "cart", item.id));
       setItems((prev) => prev.filter((i) => i.id !== item.id));
     } catch (e) {
-      console.log(e);
+      console.log("Error removing cart item:", e);
     }
   };
 
@@ -84,7 +88,7 @@ export default function CartScreen() {
     </View>
   );
 
-  // total (si te YourBasket)
+  // ---------------- TOTAL ----------------
   const total = useMemo(
     () =>
       items.reduce((sum, it) => {
@@ -113,7 +117,10 @@ export default function CartScreen() {
     setDetailsOpen(true);
   };
 
+  // ---------------- PLACE ORDER ----------------
   const placeOrder = async () => {
+    if (!user) return;
+
     const phoneOk = phone.replace(/\D/g, "").length >= 8;
 
     if (!address.trim()) {
@@ -133,21 +140,93 @@ export default function CartScreen() {
     }
 
     try {
-      // 1) Krijo porosinë në Firestore
-      const orderRef = await addDoc(
+      console.log("PlaceOrder pressed");
+
+      // 1) përgatis artikujt nga cart
+      const preparedItems = items.map((it) => ({
+        cartItemId: it.id,
+        productId: it.productId || it.id,
+        name: it.name,
+        price: Number(it.price) || 0,
+        businessId: it.businessId || null,
+        businessEmail: it.businessEmail || null,
+        businessName: it.businessName || null,
+      }));
+
+      console.log("preparedItems:", preparedItems);
+
+      // 2) order për user-in
+      const userOrderData = {
+        userId: user.uid,
+        userEmail: user.email,
+        items: preparedItems,
+        total,
+        address,
+        phone,
+        paymentMethod: "cash_on_delivery",
+        status: "pending",
+        createdAt: serverTimestamp(),
+      };
+
+      console.log("Saving user order with data:", userOrderData);
+
+      // ruaj te users/{uid}/orders
+      const userOrderRef = await addDoc(
         collection(db, "users", user.uid, "orders"),
-        {
-          items,
-          total,
+        userOrderData
+      );
+
+      console.log("User order saved id:", userOrderRef.id);
+
+      // 3) NDARJA E ITEM-ave sipas biznesit
+      const byBusiness = {};
+      for (const it of preparedItems) {
+        if (!it.businessId) continue;
+        if (!byBusiness[it.businessId]) {
+          byBusiness[it.businessId] = [];
+        }
+        byBusiness[it.businessId].push(it);
+      }
+
+      const businessIds = Object.keys(byBusiness);
+      console.log("Business IDs:", businessIds);
+
+      // 4) order për secilin biznes
+      for (const businessId of businessIds) {
+        const businessItems = byBusiness[businessId];
+
+        const businessOrderData = {
+          userId: user.uid,
+          userEmail: user.email,
+          items: businessItems,
+          total: businessItems.reduce(
+            (sum, it) => sum + (Number(it.price) || 0),
+            0
+          ),
           address,
           phone,
           paymentMethod: "cash_on_delivery",
           status: "pending",
           createdAt: serverTimestamp(),
-        }
-      );
+          // opsionale
+          userOrderId: userOrderRef.id,
+        };
 
-      // 2) Fshij artikujt nga cart
+        console.log(
+          "Saving business order for:",
+          businessId,
+          businessOrderData
+        );
+
+        // 🔥 PATH-I DUHET TË PËRPUTHET ME RULES:
+        // match /businessOrders/{businessId}/orders/{orderId}
+        await addDoc(
+          collection(db, "businessOrders", businessId, "orders"),
+          businessOrderData
+        );
+      }
+
+      // 5) fshij artikujt nga cart
       for (const it of items) {
         try {
           await deleteDoc(doc(db, "users", user.uid, "cart", it.id));
@@ -162,14 +241,19 @@ export default function CartScreen() {
 
       Alert.alert(
         "Porosia u vendos",
-        `Order ID: ${orderRef.id}\nTotali: €${total}\nAdresa: ${address}\nTel: ${phone}\nPagesa: Cash on delivery`
+        `Order ID: ${userOrderRef.id}\nTotali: €${total}\nAdresa: ${address}\nTel: ${phone}\nPagesa: Cash on delivery`
       );
     } catch (e) {
-      console.log(e);
-      Alert.alert("Gabim", "Diçka shkoi keq gjatë vendosjes së porosisë.");
+      console.log("Error ne placeOrder:", e);
+      Alert.alert(
+        "Gabim",
+        "Diçka shkoi keq gjatë vendosjes së porosisë.\n" +
+          (e?.message || "")
+      );
     }
   };
 
+  // ---------------- UI ----------------
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -257,7 +341,7 @@ export default function CartScreen() {
         </View>
       </Modal>
 
-      {/* MODAL 2 – Details (address, phone, COD) */}
+      {/* MODAL 2 – Details */}
       <Modal
         visible={detailsOpen}
         animationType="slide"
@@ -295,10 +379,7 @@ export default function CartScreen() {
                 style={styles.checkRow}
               >
                 <View
-                  style={[
-                    styles.checkbox,
-                    codAgree && styles.checkboxOn,
-                  ]}
+                  style={[styles.checkbox, codAgree && styles.checkboxOn]}
                 >
                   {codAgree && <Text style={styles.checkboxTick}>✓</Text>}
                 </View>
@@ -315,10 +396,7 @@ export default function CartScreen() {
                 >
                   <Text style={styles.modalBtnLightText}>Back</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={placeOrder}
-                  style={styles.modalBtn}
-                >
+                <TouchableOpacity onPress={placeOrder} style={styles.modalBtn}>
                   <Text style={styles.modalBtnText}>Place Order</Text>
                 </TouchableOpacity>
               </View>
@@ -395,7 +473,6 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
 
-  /* summary / checkout */
   summaryWrapper: {
     marginTop: 16,
   },
@@ -441,7 +518,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
 
-  /* modals */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
