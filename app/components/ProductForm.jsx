@@ -1,3 +1,4 @@
+// app/components/ProductForm.jsx
 import React, { useState } from "react";
 import {
   View,
@@ -7,34 +8,61 @@ import {
   StyleSheet,
   FlatList,
   Image,
+  Alert,
 } from "react-native";
-import productImage2 from "../../assets/Picture2.png"; 
+import * as ImagePicker from "expo-image-picker";
 
-export default function ProductForm() {
+export default function ProductForm({ onSubmit, loading }) {
   const [productName, setProductName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedImage, setSelectedImage] = useState(productImage2);
-
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const [selected, setSelected] = useState("All");
   const [open, setOpen] = useState(false);
   const categories = ["All", "Accessories", "Clothes", "Art", "Other"];
 
-  const handlePickImage = () => {
-    
-    setSelectedImage(productImage2);
+  const handlePickImage = async () => {
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert("Permission needed", "Enable gallery permission.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        const asset = result.assets[0];
+        setSelectedImage(asset); // ruaj objektin e fotos
+      }
+    } catch (e) {
+      console.log("Image pick error:", e);
+      Alert.alert("Error", "Could not open image picker.");
+    }
   };
-   const handlePost = () => {
-    console.log({
+
+  const handlePost = () => {
+    if (!onSubmit) {
+      console.log("No onSubmit handler passed");
+      return;
+    }
+
+    onSubmit({
       productName,
       category: selected,
       price,
       description,
-      image: selectedImage,
+      imageUri: selectedImage?.uri || null,
     });
   };
-    return (
+
+  return (
     <View style={styles.container}>
       <Text style={styles.label}>Product Name</Text>
       <TextInput
@@ -44,42 +72,44 @@ export default function ProductForm() {
         value={productName}
         onChangeText={setProductName}
       />
-      
+
       <Text style={styles.label}>Category</Text>
       <TouchableOpacity
         style={styles.dropdownButton}
         onPress={() => setOpen(!open)}
       >
-    <Text style={styles.dropdownText}>{selected}</Text>
-    <Text style={styles.icon}>{open ? "▲" : "▼"}</Text>
-    </TouchableOpacity>
-    {open && (
-    <View style={styles.dropdownList}>
-    <FlatList
-    data={categories}
-    keyExtractor={(item) => item}
-    renderItem={({ item }) => (
-    <TouchableOpacity
-    style={styles.option}
-    onPress={() => {
-    setSelected(item);
-    setOpen(false);
-    }}
-    >
-    <Text
-    style={[
-    styles.optionText,
-    selected === item && styles.selectedText,
-    ]}
-    >
-    {item}
-    </Text>
-    </TouchableOpacity>
-     )}
-    />
-    </View>
-    )}
-<Text style={styles.label}>Product Price</Text>
+        <Text style={styles.dropdownText}>{selected}</Text>
+        <Text style={styles.icon}>{open ? "▲" : "▼"}</Text>
+      </TouchableOpacity>
+
+      {open && (
+        <View style={styles.dropdownList}>
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => {
+                  setSelected(item);
+                  setOpen(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    selected === item && styles.selectedText,
+                  ]}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
+
+      <Text style={styles.label}>Product Price</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter price"
@@ -88,6 +118,7 @@ export default function ProductForm() {
         value={price}
         onChangeText={setPrice}
       />
+
       <Text style={styles.label}>Description</Text>
       <TextInput
         style={[styles.input, { height: 80 }]}
@@ -97,18 +128,31 @@ export default function ProductForm() {
         value={description}
         onChangeText={setDescription}
       />
-    <Text style={styles.label}>Upload Picture</Text>
+
+      <Text style={styles.label}>Upload Picture</Text>
       <TouchableOpacity style={styles.uploadButton} onPress={handlePickImage}>
         <Text style={styles.plus}>＋</Text>
       </TouchableOpacity>
 
-      
-      <TouchableOpacity style={styles.postBtn} onPress={handlePost}>
-        <Text style={styles.postText}>POST</Text>
+      {selectedImage && (
+        <Image
+          source={{ uri: selectedImage.uri }}
+          style={styles.previewImage}
+          resizeMode="cover"
+        />
+      )}
+
+      <TouchableOpacity
+        style={styles.postBtn}
+        onPress={handlePost}
+        disabled={loading}
+      >
+        <Text style={styles.postText}>{loading ? "POSTING..." : "POST"}</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     gap: 16,
@@ -118,8 +162,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2E5E2D",
     fontSize: 16,
-
-    
   },
   input: {
     backgroundColor: "#DCC9A8",
@@ -128,7 +170,7 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 14,
     color: "#2E5E2D",
-    padding: 10
+    padding: 10,
   },
   dropdownButton: {
     flexDirection: "row",
@@ -173,14 +215,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#DCC9A8",
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 140,
+    alignSelf: "center",
   },
   plus: {
     color: "#2E5E2D",
     fontSize: 24,
     fontWeight: "bold",
-    alignItems: "center",
-    
+  },
+  previewImage: {
+    width: "100%",
+    height: 180,
+    borderRadius: 12,
+    marginTop: 10,
   },
   postBtn: {
     marginTop: 20,
@@ -189,7 +235,6 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: "center",
     justifyContent: "center",
-    
   },
   postText: {
     color: "#2E5E2D",
@@ -197,5 +242,3 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 });
-
-

@@ -1,192 +1,108 @@
-
+// app/(bussines)/AddProductScreen.jsx
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native";
+import { SafeAreaView, View, StyleSheet, Alert } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
+import { useRouter } from "expo-router";
+
+import Header from "../components/HeaderAdd";
+import ProductForm from "../components/ProductForm";
+import ProfileIcon from "../components/ProfileIcon";
 
 const GREEN = "#2E5E2D";
-const BEIGE = "#EADFC4";
 
 export default function AddProductScreen() {
   const { user } = useAuth();
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleAdd = async () => {
-    setError("");
-    setMessage("");
-    if (!name || !price) {
-      setError("Name and price are required.");
+  const [loading, setLoading] = useState(false);
+
+  const handleAdd = async (data) => {
+    if (!user) {
+      Alert.alert("Error", "You must be logged in as a business.");
       return;
     }
+
+    const { productName, category, price, description, imageUri } = data;
+
+    if (!productName || !price) {
+      Alert.alert("Error", "Name and price are required.");
+      return;
+    }
+
     const numeric = Number(price);
     if (isNaN(numeric)) {
-      setError("Price must be a number.");
+      Alert.alert("Error", "Price must be a number.");
       return;
     }
-    if (!user) {
-      setError("You must be logged in.");
-      return;
-    }
-    setLoading(true);
+
     try {
+      setLoading(true);
+
       await addDoc(collection(db, "products"), {
-        name,
+        name: productName,
+        category: category || "All",
         price: numeric,
-        description,
+        description: description || "",
+        imageUrl: imageUri || null,        // mundet ma vonë me u lidhe me Firebase Storage
         ownerId: user.uid,
         ownerEmail: user.email,
         createdAt: new Date().toISOString(),
       });
-      setName("");
-      setPrice("");
-      setDescription("");
-      setMessage("Product added successfully ✅");
+
+      Alert.alert("Success", "Product posted successfully ✅");
+
+      // Kthehu te Home i biznesit (që e ke pas ma herët)
+      router.back(); // ose router.push("/(bussines)"); nëse ke home aty
     } catch (e) {
-      console.log(e);
-      setError("Failed to add product.");
+      console.log("Add product error:", e);
+      Alert.alert("Error", "Failed to add product.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Add Product</Text>
-          <Text style={styles.subtitle}>Publish a new product to the marketplace.</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Header + profile icon */}
+      <View style={styles.headerRow}>
+        <Header />
+        <ProfileIcon onPress={() => console.log("Profile clicked")} />
+      </View>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          {message ? <Text style={styles.successText}>{message}</Text> : null}
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              placeholder="Product name"
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Price (€)</Text>
-            <TextInput
-              placeholder="0.00"
-              style={styles.input}
-              keyboardType="decimal-pad"
-              value={price}
-              onChangeText={setPrice}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              placeholder="Short description"
-              style={[styles.input, styles.textarea]}
-              multiline
-              value={description}
-              onChangeText={setDescription}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleAdd}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Save product</Text>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      {/* Kartela e bardhë me formën brenda */}
+      <View style={styles.formWrapper}>
+        <ProductForm onSubmit={handleAdd} loading={loading} />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: BEIGE,
-  },
   container: {
-    flexGrow: 1,
-    padding: 24,
+    flex: 1,
+    backgroundColor: "#d7ceb2ff", // BEIGE
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: GREEN,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    fontSize: 16,
-  },
-  textarea: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  button: {
-    backgroundColor: GREEN,
-    paddingVertical: 14,
-    borderRadius: 14,
+  headerRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    justifyContent: "space-between",
+    backgroundColor: GREEN,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    paddingHorizontal: 20,
+    height: 80,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  errorText: {
-    color: "red",
-    marginBottom: 8,
-  },
-  successText: {
-    color: "green",
-    marginBottom: 8,
+  formWrapper: {
+    flex: 1,
+    margin: 20,
+    padding: 20,
+    backgroundColor: "#dedbcfff",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 });
