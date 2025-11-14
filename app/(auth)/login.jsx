@@ -105,7 +105,7 @@ export default function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Task Manager Login</Text>
+          <Text style={styles.title}>Login</Text>
           <Text style={styles.subtitle}>Welcome back 👋</Text>
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
