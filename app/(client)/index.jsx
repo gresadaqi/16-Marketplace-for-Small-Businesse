@@ -11,13 +11,20 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  setDoc,
+  doc,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
 
 const GREEN = "#2E5E2D";
 const LIGHT_GREEN = "#79AC78";
 const BEIGE = "#EADFC4";
+const DISABLED_GRAY = "#B0B0B0";
 
 export default function ClientHome() {
   const { user } = useAuth();
@@ -25,9 +32,10 @@ export default function ClientHome() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // NEW: modal state
   const [selected, setSelected] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+const [addedProducts, setAddedProducts] = useState([]);
 
   const openModal = (item) => {
     setSelected(item);
@@ -58,39 +66,59 @@ export default function ClientHome() {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+    const cartRef = collection(db, "users", user.uid, "cart");
+    const unsub = onSnapshot(cartRef, (snap) => {
+      const ids = snap.docs.map((d) => d.id);
+      setAddedProducts(ids);
+    });
+    return unsub;
+  }, [user]);
+
   const handleAddToCart = async (product) => {
     if (!user) return;
+    if (addedProducts.includes(product.id)) return; 
+
     try {
-      await addDoc(collection(db, "users", user.uid, "cart"), {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        createdAt: new Date().toISOString(),
-      });
+      await setDoc(
+        doc(db, "users", user.uid, "cart", product.id),
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          createdAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+
+      setAddedProducts((prev) => [...prev, product.id]);
     } catch (e) {
       console.log(e);
     }
   };
 
-  const renderItem = ({ item }) => (
-    // Wrap card so tapping anywhere opens the modal
-    <Pressable style={styles.card} onPress={() => openModal(item)}>
-      <Text style={styles.productName}>{item.name}</Text>
-      <Text style={styles.productPrice}>{item.price} €</Text>
-      <Text style={styles.productOwner}>By: {item.ownerName || "Business"}</Text>
+  const renderItem = ({ item }) => {
+    const isAdded = addedProducts.includes(item.id);
+    return (
+      <Pressable style={styles.card} onPress={() => openModal(item)}>
+        <Text style={styles.productName}>{item.name}</Text>
+        <Text style={styles.productPrice}>{item.price} €</Text>
+        <Text style={styles.productOwner}>By: {item.ownerName || "Business"}</Text>
 
-      <TouchableOpacity
-        style={styles.cartButton}
-        onPress={(e) => {
-          // prevent opening modal when pressing this button
-          e?.stopPropagation?.();
-          handleAddToCart(item);
-        }}
-      >
-        <Text style={styles.cartButtonText}>Add to cart</Text>
-      </TouchableOpacity>
-    </Pressable>
-  );
+        <TouchableOpacity
+          disabled={isAdded}
+          style={[styles.cartButton, isAdded && { backgroundColor: DISABLED_GRAY }]}
+          onPress={(e) => {
+            e?.stopPropagation?.();
+            handleAddToCart(item);
+          }}
+        >
+          <Text style={styles.cartButtonText}>{isAdded ? "Added" : "Add to cart"}</Text>
+        </TouchableOpacity>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -110,22 +138,13 @@ export default function ClientHome() {
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No products yet. Check back later.</Text>
-          }
+          ListEmptyComponent={<Text style={styles.emptyText}>No products yet. Check back later.</Text>}
         />
       )}
 
-      {/* Product details popup */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={closeModal}
-      >
-        {/* Backdrop: tap outside to close */}
+      {}
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={closeModal}>
         <Pressable style={styles.backdrop} onPress={closeModal}>
-          {/* Card: stop closing when tapping inside */}
           <Pressable style={styles.modalCard} onPress={() => {}}>
             <ScrollView style={{ maxHeight: 300 }}>
               <Text style={styles.modalTitle}>{selected?.name}</Text>
@@ -140,11 +159,19 @@ export default function ClientHome() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.modalBtn, styles.addBtn]}
+                disabled={addedProducts.includes(selected?.id)}
+                style={[
+                  styles.modalBtn,
+                  styles.addBtn,
+                  addedProducts.includes(selected?.id) && { backgroundColor: DISABLED_GRAY },
+                ]}
                 onPress={() => selected && handleAddToCart(selected)}
               >
-                <Text style={styles.modalBtnText}>Add to cart</Text>
+                <Text style={styles.modalBtnText}>
+                  {addedProducts.includes(selected?.id) ? "Added" : "Add to cart"}
+                </Text>
               </TouchableOpacity>
+
               <TouchableOpacity style={[styles.modalBtn, styles.closeBtn]} onPress={closeModal}>
                 <Text style={styles.modalBtnText}>Close</Text>
               </TouchableOpacity>
@@ -188,7 +215,6 @@ const styles = StyleSheet.create({
   errorText: { color: "red", paddingHorizontal: 20, marginBottom: 8 },
   emptyText: { textAlign: "center", color: "#777", marginTop: 40 },
 
-  // Modal
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -212,11 +238,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  modalBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
+  modalBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10 },
   addBtn: { backgroundColor: GREEN },
   closeBtn: { backgroundColor: LIGHT_GREEN },
   modalBtnText: { color: "#fff", fontWeight: "700" },
