@@ -49,3 +49,16 @@ Secili anëtar ka kontribuar në **dizajnin, zhvillimin dhe planifikimin e funks
 ## Qëllimi
 Qëllimi i këtij projekti është të **ndihmojë bizneset e vogla lokale në Kosovë të digjitalizohen**,  
 duke u ofruar atyre një platformë tregtare të qasshme dhe të thjeshtë që **nuk kërkon njohuri teknike apo kosto të larta zhvillimi**.
+
+
+## Phase II implementation notes
+
+- Navigation migrated to **Expo Router** with `(auth)`, `(client)` and `(business)` route groups.
+- Authentication implemented with **Firebase Authentication**:
+  - Email/password
+  - Google provider via `expo-auth-session` + `GoogleAuthProvider`
+- Role-based users (client/business) stored in Firestore collection `users`.
+- Firestore CRUD examples:
+  - Businesses can create and delete products in `products` collection.
+  - Clients can add items to their `cart` subcollection and remove them.
+- UI has been refreshed with consistent green / beige palette and tab navigation for each role.
