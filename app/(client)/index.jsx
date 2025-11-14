@@ -26,6 +26,8 @@ const GREEN = "#2E5E2D";
 const LIGHT_GREEN = "#79AC78";
 const BEIGE = "#EADFC4";
 const DISABLED_GRAY = "#B0B0B0";
+const CHIP_BROWN = "#5B4636";
+const CARD_BORDER = "#6ea06c";
 
 export default function ClientHome() {
   const { user } = useAuth();
@@ -94,50 +96,60 @@ export default function ClientHome() {
         },
         { merge: true }
       );
-
       setAddedProducts((prev) => [...prev, product.id]);
     } catch (e) {
       console.log(e);
     }
   };
 
+  const CategoryBar = () => (
+    <View style={styles.catSection}>
+      <Text style={styles.sectionTitle}>Category</Text>
+      <View style={styles.sectionDivider} />
+      <View style={styles.catRow}>
+        <View style={styles.catBtn}>
+          <View style={styles.catIcon}><Text style={styles.catEmoji}>🌀</Text></View>
+          <Text style={styles.catLabel}>All</Text>
+        </View>
+        <View style={styles.catBtn}>
+          <View style={styles.catIcon}><Text style={styles.catEmoji}>👕</Text></View>
+          <Text style={styles.catLabel}>Clothes</Text>
+        </View>
+        <View style={styles.catBtn}>
+          <View style={styles.catIcon}><Text style={styles.catEmoji}>🎒</Text></View>
+          <Text style={styles.catLabel}>Accessories</Text>
+        </View>
+        <View style={styles.catBtn}>
+          <View style={styles.catIcon}><Text style={styles.catEmoji}>🖼️</Text></View>
+          <Text style={styles.catLabel}>Art</Text>
+        </View>
+        <View style={styles.catBtn}>
+          <View style={styles.catIcon}><Text style={styles.catEmoji}>⋯</Text></View>
+          <Text style={styles.catLabel}>Other</Text>
+        </View>
+      </View>
+      <Text style={[styles.sectionTitle, { marginTop: 12 }]}>All</Text>
+      <View style={styles.sectionDivider} />
+    </View>
+  );
+
   const renderItem = ({ item }) => {
-    const isAdded = addedProducts.includes(item.id);
-
     return (
-      <Pressable style={styles.card} onPress={() => openModal(item)}>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.thumb} />
-        ) : (
-          <View style={[styles.thumb, styles.thumbPlaceholder]} />
-        )}
-
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.productName}>{item.name}</Text>
-
-          {/* Category */}
-          {item.category && (
-            <Text style={styles.productCategory}>Category: {item.category}</Text>
+      <Pressable style={styles.gridItem} onPress={() => openModal(item)}>
+        <View style={styles.imgCard}>
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.img} />
+          ) : (
+            <View style={[styles.img, { backgroundColor: "#e9e9e9" }]} />
           )}
-
-          <Text style={styles.productPrice}>{item.price} €</Text>
-          <Text style={styles.productOwner}>By: {item.ownerName || "Business"}</Text>
-
-          <TouchableOpacity
-            disabled={isAdded}
-            style={[
-              styles.cartButton,
-              isAdded && { backgroundColor: DISABLED_GRAY },
-            ]}
-            onPress={(e) => {
-              e?.stopPropagation?.();
-              handleAddToCart(item);
-            }}
-          >
-            <Text style={styles.cartButtonText}>
-              {isAdded ? "Added" : "Add to cart"}
-            </Text>
-          </TouchableOpacity>
+        </View>
+        <View style={styles.pillsWrap}>
+          <View style={styles.pill}>
+            <Text style={styles.pillText} numberOfLines={1}>{item.name}</Text>
+          </View>
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>${item.price}</Text>
+          </View>
         </View>
       </Pressable>
     );
@@ -145,72 +157,62 @@ export default function ClientHome() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Marketplace</Text>
-        <Text style={styles.subtitle}>
-          Browse products from local businesses
-        </Text>
-      </View>
-
-      {loading && (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={GREEN} />
+      <ScrollView contentContainerStyle={styles.pageWrap}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Marketplace</Text>
+          <Text style={styles.subtitle}>Browse products from local businesses</Text>
         </View>
-      )}
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {!loading && !error && (
-        <FlatList
-          data={products}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No products yet.</Text>
-          }
-        />
-      )}
+        {loading && (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={GREEN} />
+          </View>
+        )}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {/* Modal */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={closeModal}
-      >
+        {!loading && !error && (
+          <>
+            <CategoryBar />
+            <FlatList
+              data={products}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              numColumns={3}
+              columnWrapperStyle={styles.gridRow}
+              contentContainerStyle={styles.gridList}
+              scrollEnabled={false} // handled by ScrollView
+              ListEmptyComponent={<Text style={styles.emptyText}>No products yet.</Text>}
+            />
+          </>
+        )}
+      </ScrollView>
+
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={closeModal}>
         <Pressable style={styles.backdrop} onPress={closeModal}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
-
-            {/* FIXED PIC — PERFECT FIT */}
-            {selected?.imageUrl ? (
-              <Image
-                source={{ uri: selected.imageUrl }}
-                style={styles.modalImage}
-                resizeMode="contain"
-              />
-            ) : (
-              <View style={[styles.modalImage, styles.thumbPlaceholder]} />
-            )}
-
             <ScrollView style={{ maxHeight: 300 }}>
+              {selected?.imageUrl ? (
+                <Image
+                  source={{ uri: selected.imageUrl }}
+                  style={styles.modalImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <View style={[styles.modalImage, { backgroundColor: "#e9e9e9" }]} />
+              )}
+
               <Text style={styles.modalTitle}>{selected?.name}</Text>
               <Text style={styles.modalPrice}>{selected?.price} €</Text>
-              <Text style={styles.modalOwner}>
-                By: {selected?.ownerName || "Business"}
-              </Text>
+              <Text style={styles.modalOwner}>By: {selected?.ownerName || "Business"}</Text>
 
               {selected?.category ? (
-                <Text style={styles.modalCategory}>
-                  Category: {selected.category}
-                </Text>
+                <Text style={styles.modalCategory}>Category: {selected.category}</Text>
               ) : null}
 
               {selected?.description ? (
                 <Text style={styles.modalDesc}>{selected.description}</Text>
               ) : (
-                <Text style={styles.modalDescMuted}>
-                  No description provided.
-                </Text>
+                <Text style={styles.modalDescMuted}>No description provided.</Text>
               )}
             </ScrollView>
 
@@ -220,9 +222,7 @@ export default function ClientHome() {
                 style={[
                   styles.modalBtn,
                   styles.addBtn,
-                  addedProducts.includes(selected?.id) && {
-                    backgroundColor: DISABLED_GRAY,
-                  },
+                  addedProducts.includes(selected?.id) && { backgroundColor: DISABLED_GRAY },
                 ]}
                 onPress={() => selected && handleAddToCart(selected)}
               >
@@ -231,10 +231,7 @@ export default function ClientHome() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.modalBtn, styles.closeBtn]}
-                onPress={closeModal}
-              >
+              <TouchableOpacity style={[styles.modalBtn, styles.closeBtn]} onPress={closeModal}>
                 <Text style={styles.modalBtnText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -247,50 +244,85 @@ export default function ClientHome() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: BEIGE },
+
+  pageWrap: {
+    width: "100%",
+    maxWidth: 420,
+    alignSelf: "center",
+    flexGrow: 1,
+    paddingBottom: 24,
+  },
+
   header: { paddingHorizontal: 20, paddingVertical: 16 },
   title: { fontSize: 24, fontWeight: "700", color: GREEN },
   subtitle: { fontSize: 14, color: "#555", marginTop: 4 },
-  list: { paddingHorizontal: 20, paddingBottom: 20 },
 
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#eee",
+  catSection: { paddingHorizontal: 16, marginTop: 6, marginBottom: 10 },
+  sectionTitle: { color: GREEN, fontWeight: "700", fontSize: 14 },
+  sectionDivider: {
+    height: 2,
+    backgroundColor: GREEN,
+    opacity: 0.25,
+    width: "30%",
+    marginTop: 6,
+    marginBottom: 10,
+    borderRadius: 2,
+  },
+  catRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 16,
+    flexWrap: "wrap",
   },
-
-  thumb: {
-    width: 64,
-    height: 64,
-    borderRadius: 10,
-  },
-  thumbPlaceholder: {
-    backgroundColor: "#e9e9e9",
-  },
-
-  productName: { fontSize: 18, fontWeight: "600" },
-  productCategory: { fontSize: 12, color: "#333", marginBottom: 4 },
-  productPrice: { fontSize: 16, color: GREEN, marginBottom: 4 },
-  productOwner: { fontSize: 12, color: "#444", marginBottom: 8 },
-
-  cartButton: {
-    alignSelf: "flex-start",
-    backgroundColor: GREEN,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  catBtn: { alignItems: "center", width: 64 },
+  catIcon: {
+    width: 54,
+    height: 54,
     borderRadius: 12,
+    backgroundColor: "#eee1c8",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: GREEN,
   },
-  cartButtonText: { color: "#fff", fontWeight: "600" },
+  catEmoji: { fontSize: 22, color: GREEN },
+  catLabel: { marginTop: 6, fontSize: 12, color: "#2f3b2f" },
+
+  gridList: { paddingHorizontal: 12, paddingBottom: 24 },
+  gridRow: { justifyContent: "space-between", marginBottom: 14 },
+  gridItem: { width: "31%", alignItems: "center" },
+
+  imgCard: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: CARD_BORDER,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+  },
+  img: { width: "100%", height: "100%", borderRadius: 12 },
+
+  pillsWrap: {
+    width: "100%",
+    marginTop: 8,
+    gap: 6,
+    alignItems: "center",
+  },
+  pill: {
+    backgroundColor: CHIP_BROWN,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    minWidth: "70%",
+    alignItems: "center",
+  },
+  pillText: { color: "#fff", fontSize: 13, fontWeight: "700" },
 
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   errorText: { color: "red", paddingHorizontal: 20, marginBottom: 8 },
   emptyText: { textAlign: "center", color: "#777", marginTop: 40 },
 
-  // Modal
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -303,8 +335,6 @@ const styles = StyleSheet.create({
     padding: 16,
     elevation: 6,
   },
-
-  // FIXED IMAGE
   modalImage: {
     width: "100%",
     height: 230,
@@ -312,22 +342,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: "#f0f0f0",
   },
-
   modalTitle: { fontSize: 20, fontWeight: "700", color: "#222" },
   modalPrice: { fontSize: 16, color: GREEN, marginTop: 4, marginBottom: 6 },
   modalOwner: { fontSize: 12, color: "#444", marginBottom: 6 },
-  modalCategory: {
-    fontSize: 12,
-    color: "#1a1a1a",
-    marginBottom: 10,
-    fontWeight: "600",
-  },
+  modalCategory: { fontSize: 12, color: "#1a1a1a", marginBottom: 10, fontWeight: "600" },
   modalDesc: { fontSize: 14, color: "#333", lineHeight: 20 },
-  modalDescMuted: {
-    fontSize: 14,
-    color: "#777",
-    fontStyle: "italic",
-  },
+  modalDescMuted: { fontSize: 14, color: "#777", fontStyle: "italic" },
 
   modalActions: {
     flexDirection: "row",
@@ -335,11 +355,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  modalBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
+  modalBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10 },
   addBtn: { backgroundColor: GREEN },
   closeBtn: { backgroundColor: LIGHT_GREEN },
   modalBtnText: { color: "#fff", fontWeight: "700" },
