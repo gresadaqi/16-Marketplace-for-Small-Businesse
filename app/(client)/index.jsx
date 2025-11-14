@@ -10,6 +10,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Image,
 } from "react-native";
 import {
   collection,
@@ -35,7 +36,8 @@ export default function ClientHome() {
   const [selected, setSelected] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-const [addedProducts, setAddedProducts] = useState([]);
+  // Track which product IDs are already in the user’s cart
+  const [addedProducts, setAddedProducts] = useState([]);
 
   const openModal = (item) => {
     setSelected(item);
@@ -66,11 +68,12 @@ const [addedProducts, setAddedProducts] = useState([]);
     loadProducts();
   }, []);
 
+  // Live-sync the cart so the UI updates immediately and stays in sync after reloads
   useEffect(() => {
     if (!user) return;
     const cartRef = collection(db, "users", user.uid, "cart");
     const unsub = onSnapshot(cartRef, (snap) => {
-      const ids = snap.docs.map((d) => d.id);
+      const ids = snap.docs.map((d) => d.id); // docs are stored with id = product.id
       setAddedProducts(ids);
     });
     return unsub;
@@ -78,20 +81,24 @@ const [addedProducts, setAddedProducts] = useState([]);
 
   const handleAddToCart = async (product) => {
     if (!user) return;
-    if (addedProducts.includes(product.id)) return; 
+    if (addedProducts.includes(product.id)) return; // already added
 
     try {
+      // Idempotent write: store cart doc with the product's id to avoid duplicates
       await setDoc(
         doc(db, "users", user.uid, "cart", product.id),
         {
           productId: product.id,
           name: product.name,
           price: product.price,
+          imageUrl: product.imageUrl || null,
+          category: product.category || null,
           createdAt: new Date().toISOString(),
         },
         { merge: true }
       );
 
+      // Optimistic update; onSnapshot will also reflect this
       setAddedProducts((prev) => [...prev, product.id]);
     } catch (e) {
       console.log(e);
@@ -102,20 +109,32 @@ const [addedProducts, setAddedProducts] = useState([]);
     const isAdded = addedProducts.includes(item.id);
     return (
       <Pressable style={styles.card} onPress={() => openModal(item)}>
-        <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productPrice}>{item.price} €</Text>
-        <Text style={styles.productOwner}>By: {item.ownerName || "Business"}</Text>
+        {/* Thumbnail on the left (if no imageUrl, render a gray placeholder box) */}
+        {item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} style={styles.thumb} />
+        ) : (
+          <View style={[styles.thumb, styles.thumbPlaceholder]} />
+        )}
 
-        <TouchableOpacity
-          disabled={isAdded}
-          style={[styles.cartButton, isAdded && { backgroundColor: DISABLED_GRAY }]}
-          onPress={(e) => {
-            e?.stopPropagation?.();
-            handleAddToCart(item);
-          }}
-        >
-          <Text style={styles.cartButtonText}>{isAdded ? "Added" : "Add to cart"}</Text>
-        </TouchableOpacity>
+        {/* Info on the right */}
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={styles.productName}>{item.name}</Text>
+          <Text style={styles.productPrice}>{item.price} €</Text>
+          <Text style={styles.productOwner}>By: {item.ownerName || "Business"}</Text>
+
+          <TouchableOpacity
+            disabled={isAdded}
+            style={[styles.cartButton, isAdded && { backgroundColor: DISABLED_GRAY }]}
+            onPress={(e) => {
+              e?.stopPropagation?.(); // don't open modal when pressing this
+              handleAddToCart(item);
+            }}
+          >
+            <Text style={styles.cartButtonText}>
+              {isAdded ? "Added" : "Add to cart"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </Pressable>
     );
   };
@@ -126,30 +145,47 @@ const [addedProducts, setAddedProducts] = useState([]);
         <Text style={styles.title}>Marketplace</Text>
         <Text style={styles.subtitle}>Browse products from local businesses</Text>
       </View>
+
       {loading && (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={GREEN} />
         </View>
       )}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
       {!loading && !error && (
         <FlatList
           data={products}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={styles.emptyText}>No products yet. Check back later.</Text>}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No products yet. Check back later.</Text>
+          }
         />
       )}
 
-      {}
+      {/* Product details popup */}
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={closeModal}>
         <Pressable style={styles.backdrop} onPress={closeModal}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
+            {/* Bigger image on top in the popup */}
+            {selected?.imageUrl ? (
+              <Image source={{ uri: selected.imageUrl }} style={styles.modalImage} resizeMode="cover" />
+            ) : (
+              <View style={[styles.modalImage, styles.thumbPlaceholder]} />
+            )}
+
             <ScrollView style={{ maxHeight: 300 }}>
               <Text style={styles.modalTitle}>{selected?.name}</Text>
               <Text style={styles.modalPrice}>{selected?.price} €</Text>
               <Text style={styles.modalOwner}>By: {selected?.ownerName || "Business"}</Text>
+
+              {/* Category line */}
+              {selected?.category ? (
+                <Text style={styles.modalCategory}>Category: {selected.category}</Text>
+              ) : null}
+
               {selected?.description ? (
                 <Text style={styles.modalDesc}>{selected.description}</Text>
               ) : (
@@ -193,11 +229,23 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#eee",
+    flexDirection: "row",          // image left, text right
+    alignItems: "center",
   },
+  thumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: "#f0f0f0",
+  },
+  thumbPlaceholder: {
+    backgroundColor: "#e9e9e9",
+  },
+
   productName: { fontSize: 18, fontWeight: "600", marginBottom: 4 },
   productPrice: { fontSize: 16, color: GREEN, marginBottom: 4 },
   productOwner: { fontSize: 12, color: "#444", marginBottom: 8 },
@@ -215,6 +263,7 @@ const styles = StyleSheet.create({
   errorText: { color: "red", paddingHorizontal: 20, marginBottom: 8 },
   emptyText: { textAlign: "center", color: "#777", marginTop: 40 },
 
+  // Modal
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -227,11 +276,20 @@ const styles = StyleSheet.create({
     padding: 16,
     elevation: 6,
   },
+  modalImage: {
+    width: "100%",
+    height: 200,                  // bigger image in popup
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: "#f0f0f0",
+  },
   modalTitle: { fontSize: 20, fontWeight: "700", color: "#222" },
   modalPrice: { fontSize: 16, color: GREEN, marginTop: 4, marginBottom: 6 },
-  modalOwner: { fontSize: 12, color: "#444", marginBottom: 10 },
+  modalOwner: { fontSize: 12, color: "#444", marginBottom: 6 },
+  modalCategory: { fontSize: 12, color: "#2d2d2d", marginBottom: 10, fontWeight: "600" },
   modalDesc: { fontSize: 14, color: "#333", lineHeight: 20 },
   modalDescMuted: { fontSize: 14, color: "#777", fontStyle: "italic" },
+
   modalActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
