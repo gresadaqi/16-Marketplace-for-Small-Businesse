@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   View,
@@ -16,6 +15,7 @@ const GREEN = "#2E5E2D";
 const BEIGE = "#EADFC4";
 const BROWN = "#3B2A24";
 const GOLD = "#A6791A";
+
 export default function ClientProfile() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -149,3 +149,93 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
+  infoContainer: {
+    marginLeft: 24,
+    justifyContent: "center",
+  },
+  nameText: {
+    fontSize: 26,
+    fontWeight: "700",
+  },
+  emailText: {
+    fontSize: 16,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  signOutButton: {
+    backgroundColor: BROWN,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 16,
+    alignSelf: "flex-start",
+  },
+  signOutText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+
+  /* PURCHASE HISTORY */
+  historyCard: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 20,
+    marginTop: 10,
+  },
+  historyTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#555",
+  },
+  purchaseItem: {
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: "row",
+  },
+  imageWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: GREEN,
+    overflow: "hidden",
+    marginRight: 12,
+  },
+  productImage: {
+    width: "100%",
+    height: "100%",
+  },
+  infoBox: {
+    flex: 1,
+  },
+  badge: {
+    backgroundColor: BROWN,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 6,
+    alignSelf: "flex-start",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  infoText: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  infoLabel: {
+    fontWeight: "700",
+  },
+  separator: {
+    height: 2,
+    backgroundColor: GREEN,
+    marginTop: 12,
+  },
+});
