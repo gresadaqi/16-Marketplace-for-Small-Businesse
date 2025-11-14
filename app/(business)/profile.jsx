@@ -7,18 +7,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
-import { useAuth } from "../components/AuthProvider";
-import { useRouter } from "expo-router";
 import {
   collection,
-  getDocs,
-  query,
-  orderBy,
-  updateDoc,
+  onSnapshot,
   doc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
+import { useAuth } from "../components/AuthProvider";
+import { useRouter } from "expo-router";
 
 const GREEN = "#2E5E2D";
 const BEIGE = "#EADFC4";
@@ -35,8 +36,7 @@ export default function BusinessProfile() {
 
   const [ongoingOrders, setOngoingOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
-
-  const businessId = user?.uid;
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = async () => {
     await logout();
@@ -46,104 +46,70 @@ export default function BusinessProfile() {
   const currentTitle =
     selectedTab === "ongoing" ? "Ongoing Orders" : "Order History";
 
+  // -------- LOAD BUSINESS ORDERS ----------
   useEffect(() => {
-    const loadOrders = async () => {
-      if (!businessId) return;
+    if (!user) return;
 
-      try {
-        const q = query(
-          collection(db, "businesses", businessId, "orders"),
-          orderBy("createdAt", "desc")
-        );
-        const snap = await getDocs(q);
+    // ⬅️ KY PATH DUHET ME U PËRPUTH ME cart.jsx
+    const ordersRef = collection(db, "businessOrders", user.uid, "orders");
 
-        const ongoing = [];
-        const history = [];
+    const unsub = onSnapshot(
+      ordersRef,
+      (snap) => {
+        const list = snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
 
-        snap.forEach((d) => {
-          const data = d.data();
-          const firstItem = data.items && data.items[0];
-
-          const order = {
-            id: d.id,
-            image: firstItem?.imageUrl || null,
-            title: firstItem?.name || "Order",
-            from: data.userEmail || "Unknown user",
-            address: data.address || "",
-            total: `€${data.total || 0}`,
-            status: data.status || "pending",
-            userId: data.userId,
-            userOrderId: data.userOrderId,
-          };
-
-          if (order.status === "pending") {
-            ongoing.push(order);
-          } else {
-            history.push(order);
-          }
-        });
+        const ongoing = list.filter((o) => o.status === "pending");
+        const history = list.filter((o) => o.status !== "pending");
 
         setOngoingOrders(ongoing);
         setHistoryOrders(history);
-      } catch (e) {
-        console.log("Error loading business orders:", e);
+        setLoading(false);
+      },
+      (err) => {
+        console.log("Error loading business orders:", err);
+        setLoading(false);
       }
-    };
+    );
 
-    loadOrders();
-  }, [businessId]);
+    return unsub;
+  }, [user]);
 
-  const handleConfirm = async (id) => {
-    if (!businessId) return;
-
-    const order = ongoingOrders.find((o) => o.id === id);
-    if (!order) return;
-
+  // -------- CONFIRM / CANCEL ----------
+  const confirmOrder = async (order) => {
     try {
-      await updateDoc(doc(db, "businesses", businessId, "orders", id), {
+      // 1) update business order status
+      const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
+      await updateDoc(ref, {
         status: "completed",
+        updatedAt: serverTimestamp(),
       });
 
-      if (order.userId && order.userOrderId) {
-        await updateDoc(
-          doc(db, "users", order.userId, "orders", order.userOrderId),
-          { status: "completed" }
-        );
+      // 2) krijo purchase te klienti (users/{userId}/orders)
+      if (order.userId) {
+        const { id, ...rest } = order;
+        await addDoc(collection(db, "users", order.userId, "orders"), {
+          ...rest,
+          status: "completed",
+          businessId: user.uid,
+          businessEmail: user.email,
+          createdAt: serverTimestamp(),
+        });
       }
-
-      setOngoingOrders((prev) => prev.filter((o) => o.id !== id));
-      setHistoryOrders((prev) => [
-        { ...order, status: "completed" },
-        ...prev,
-      ]);
     } catch (e) {
       console.log("Error confirming order:", e);
     }
   };
 
-  const handleCancel = async (id) => {
-    if (!businessId) return;
-
-    const order = ongoingOrders.find((o) => o.id === id);
-    if (!order) return;
-
+  const cancelOrder = async (order) => {
     try {
-      await updateDoc(doc(db, "businesses", businessId, "orders", id), {
+      const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
+      await updateDoc(ref, {
         status: "cancelled",
+        updatedAt: serverTimestamp(),
       });
-
-      if (order.userId && order.userOrderId) {
-        await updateDoc(
-          doc(db, "users", order.userId, "orders", order.userOrderId),
-          { status: "cancelled" }
-        );
-      }
-
-      setOngoingOrders((prev) => prev.filter((o) => o.id !== id));
-      setHistoryOrders((prev) => [
-        { ...order, status: "cancelled" },
-        ...prev,
-      ]);
     } catch (e) {
       console.log("Error cancelling order:", e);
     }
@@ -195,7 +161,8 @@ export default function BusinessProfile() {
                 <TouchableOpacity
                   style={[
                     styles.dropdownItem,
-                    selectedTab === "ongoing" && styles.dropdownItemSelected,
+                    selectedTab === "ongoing" &&
+                      styles.dropdownItemSelected,
                   ]}
                   onPress={() => {
                     setSelectedTab("ongoing");
@@ -205,7 +172,8 @@ export default function BusinessProfile() {
                   <Text
                     style={[
                       styles.dropdownText,
-                      selectedTab === "ongoing" && styles.dropdownTextSelected,
+                      selectedTab === "ongoing" &&
+                        styles.dropdownTextSelected,
                     ]}
                   >
                     Ongoing Orders
@@ -215,7 +183,8 @@ export default function BusinessProfile() {
                 <TouchableOpacity
                   style={[
                     styles.dropdownItem,
-                    selectedTab === "history" && styles.dropdownItemSelected,
+                    selectedTab === "history" &&
+                      styles.dropdownItemSelected,
                   ]}
                   onPress={() => {
                     setSelectedTab("history");
@@ -225,7 +194,8 @@ export default function BusinessProfile() {
                   <Text
                     style={[
                       styles.dropdownText,
-                      selectedTab === "history" && styles.dropdownTextSelected,
+                      selectedTab === "history" &&
+                        styles.dropdownTextSelected,
                     ]}
                   >
                     Order History
@@ -234,69 +204,59 @@ export default function BusinessProfile() {
               </View>
             )}
 
-            {/* LISTA */}
-            {selectedTab === "ongoing" ? (
+            {loading ? (
+              <View style={{ paddingVertical: 20 }}>
+                <ActivityIndicator color={GREEN} />
+              </View>
+            ) : selectedTab === "ongoing" ? (
               <View style={styles.listContainer}>
                 {ongoingOrders.length === 0 ? (
-                  <Text style={styles.emptyText}>No ongoing orders.</Text>
+                  <Text style={styles.emptyText}>
+                    No ongoing orders.
+                  </Text>
                 ) : (
-                  ongoingOrders.map((item) => (
-                    <View key={item.id} style={styles.orderItem}>
+                  ongoingOrders.map((order) => (
+                    <View key={order.id} style={styles.orderItem}>
                       <View style={styles.row}>
-                        <View style={styles.imageWrapper}>
-                          {item.image ? (
-                            <Image
-                              source={{ uri: item.image }}
-                              style={styles.productImage}
-                            />
-                          ) : (
-                            <View
-                              style={[
-                                styles.productImage,
-                                {
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                },
-                              ]}
-                            >
-                              <Text style={{ fontSize: 10 }}>No image</Text>
-                            </View>
-                          )}
-                        </View>
-
                         <View style={styles.orderInfo}>
                           <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{item.title}</Text>
+                            <Text style={styles.badgeText}>
+                              From: {order.userEmail || "Client"}
+                            </Text>
                           </View>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>From: </Text>
-                            {item.from}
+                            <Text style={styles.infoLabel}>
+                              Address:{" "}
+                            </Text>
+                            {order.address}
                           </Text>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>Address: </Text>
-                            {item.address}
+                            <Text style={styles.infoLabel}>Phone: </Text>
+                            {order.phone}
                           </Text>
 
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Total: </Text>
-                            {item.total}
+                            {order.total} €
                           </Text>
 
                           <View style={styles.actionsRow}>
                             <TouchableOpacity
                               style={styles.confirmCircle}
-                              onPress={() => handleConfirm(item.id)}
+                              onPress={() => confirmOrder(order)}
                             >
                               <Text style={styles.confirmIcon}>✓</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                               style={styles.cancelButton}
-                              onPress={() => handleCancel(item.id)}
+                              onPress={() => cancelOrder(order)}
                             >
-                              <Text style={styles.cancelText}>Cancel</Text>
+                              <Text style={styles.cancelText}>
+                                Cancel
+                              </Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -310,56 +270,42 @@ export default function BusinessProfile() {
             ) : (
               <View style={styles.listContainer}>
                 {historyOrders.length === 0 ? (
-                  <Text style={styles.emptyText}>No orders in history.</Text>
+                  <Text style={styles.emptyText}>
+                    No orders in history.
+                  </Text>
                 ) : (
-                  historyOrders.map((item) => (
-                    <View key={item.id} style={styles.orderItem}>
+                  historyOrders.map((order) => (
+                    <View key={order.id} style={styles.orderItem}>
                       <View style={styles.row}>
-                        <View style={styles.imageWrapper}>
-                          {item.image ? (
-                            <Image
-                              source={{ uri: item.image }}
-                              style={styles.productImage}
-                            />
-                          ) : (
-                            <View
-                              style={[
-                                styles.productImage,
-                                {
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                },
-                              ]}
-                            >
-                              <Text style={{ fontSize: 10 }}>No image</Text>
-                            </View>
-                          )}
-                        </View>
-
                         <View style={styles.orderInfo}>
                           <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{item.title}</Text>
+                            <Text style={styles.badgeText}>
+                              From: {order.userEmail || "Client"}
+                            </Text>
                           </View>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>From: </Text>
-                            {item.from}
+                            <Text style={styles.infoLabel}>
+                              Address:{" "}
+                            </Text>
+                            {order.address}
                           </Text>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>Address: </Text>
-                            {item.address}
+                            <Text style={styles.infoLabel}>Phone: </Text>
+                            {order.phone}
                           </Text>
 
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Total: </Text>
-                            {item.total}
+                            {order.total} €
                           </Text>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>Status: </Text>
-                            {item.status.charAt(0).toUpperCase() +
-                              item.status.slice(1)}
+                            <Text style={styles.infoLabel}>
+                              Status:{" "}
+                            </Text>
+                            {order.status}
                           </Text>
                         </View>
                       </View>
@@ -376,8 +322,6 @@ export default function BusinessProfile() {
     </SafeAreaView>
   );
 }
-
-/* STYLES */
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -491,20 +435,6 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-  },
-  imageWrapper: {
-    width: 90,
-    height: 90,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: GREEN,
-    overflow: "hidden",
-    marginRight: 12,
-    backgroundColor: "#fff",
-  },
-  productImage: {
-    width: "100%",
-    height: "100%",
   },
   orderInfo: {
     flex: 1,

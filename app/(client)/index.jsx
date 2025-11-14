@@ -60,7 +60,7 @@ export default function ClientHome() {
       snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
       setProducts(list);
     } catch (e) {
-      console.log(e);
+      console.log("Error loading products:", e);
       setError("Failed to load products.");
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export default function ClientHome() {
     loadProducts();
   }, []);
 
-  // ---------------- WATCH CART ----------------
+  // ---------------- WATCH CART (per butonin Added) ----------------
   useEffect(() => {
     if (!user) return;
 
@@ -99,7 +99,7 @@ export default function ClientHome() {
           imageUrl: product.imageUrl || null,
           category: product.category || null,
 
-          // info e biznesit
+          // 🔥 INFO E BIZNESIT – KJO ËSHTË QË LIDHET ME businessOrders
           businessId: product.ownerId || null,
           businessEmail: product.ownerEmail || null,
           businessName: product.ownerName || "Unknown Business",
@@ -116,6 +116,15 @@ export default function ClientHome() {
   };
 
   // ---------------- CATEGORY BAR ----------------
+  const CatItem = ({ emoji, title }) => (
+    <View style={styles.catBtn}>
+      <View style={styles.catIcon}>
+        <Text style={styles.catEmoji}>{emoji}</Text>
+      </View>
+      <Text style={styles.catLabel}>{title}</Text>
+    </View>
+  );
+
   const CategoryBar = () => (
     <View style={styles.catSection}>
       <Text style={styles.sectionTitle}>Category</Text>
@@ -129,15 +138,6 @@ export default function ClientHome() {
       </View>
       <Text style={[styles.sectionTitle, { marginTop: 12 }]}>All</Text>
       <View style={styles.sectionDivider} />
-    </View>
-  );
-
-  const CatItem = ({ emoji, title }) => (
-    <View style={styles.catBtn}>
-      <View style={styles.catIcon}>
-        <Text style={styles.catEmoji}>{emoji}</Text>
-      </View>
-      <Text style={styles.catLabel}>{title}</Text>
     </View>
   );
 
@@ -160,7 +160,7 @@ export default function ClientHome() {
             </Text>
           </View>
           <View style={styles.pill}>
-            <Text style={styles.pillText}>€{item.price}</Text>
+            <Text style={styles.pillText}>{item.price} €</Text>
           </View>
         </View>
       </Pressable>
@@ -221,10 +221,16 @@ export default function ClientHome() {
                   source={{ uri: selected.imageUrl }}
                   style={styles.modalImage}
                 />
-              ) : null}
+              ) : (
+                <View
+                  style={[styles.modalImage, { backgroundColor: "#e9e9e9" }]}
+                />
+              )}
 
               <Text style={styles.modalTitle}>{selected?.name}</Text>
-              <Text style={styles.modalPrice}>{selected?.price} €</Text>
+              <Text style={styles.modalPrice}>
+                {selected?.price} €
+              </Text>
 
               <Text style={styles.modalOwner}>
                 By: {selected?.ownerEmail || "Unknown Business"}
@@ -247,18 +253,21 @@ export default function ClientHome() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                disabled={addedProducts.includes(selected?.id)}
+                disabled={
+                  !selected || addedProducts.includes(selected.id)
+                }
                 style={[
                   styles.modalBtn,
                   styles.addBtn,
-                  addedProducts.includes(selected?.id) && {
+                  (!selected ||
+                    addedProducts.includes(selected.id)) && {
                     backgroundColor: DISABLED_GRAY,
                   },
                 ]}
                 onPress={() => selected && handleAddToCart(selected)}
               >
                 <Text style={styles.modalBtnText}>
-                  {addedProducts.includes(selected?.id)
+                  {selected && addedProducts.includes(selected.id)
                     ? "Added"
                     : "Add to cart"}
                 </Text>

@@ -7,11 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "expo-router";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "../../firebase/firebaseConfig";
 
 const GREEN = "#2E5E2D";
 const BEIGE = "#EADFC4";
@@ -23,6 +24,7 @@ export default function ClientProfile() {
   const router = useRouter();
 
   const [purchases, setPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = async () => {
     await logout();
@@ -30,50 +32,27 @@ export default function ClientProfile() {
   };
 
   useEffect(() => {
-    const loadPurchases = async () => {
-      if (!user) return;
+    if (!user) return;
 
-      try {
-        const q = query(
-          collection(db, "users", user.uid, "orders"),
-          orderBy("createdAt", "desc")
-        );
-        const snap = await getDocs(q);
-        const list = [];
+    const ref = collection(db, "users", user.uid, "orders");
 
-        snap.forEach((d) => {
-          const data = d.data();
-
-          // ❗ Shfaq vetëm porositë e përfunduara
-          if (data.status !== "completed") return;
-
-          const firstItem = data.items && data.items[0];
-
-          const businessLabel =
-            firstItem?.businessName ||
-            firstItem?.businessEmail ||
-            data.businessName ||
-            data.businessEmail ||
-            firstItem?.businessId ||
-            "Unknown business";
-
-          list.push({
-            id: d.id,
-            image: firstItem?.imageUrl || null,
-            title: firstItem?.name || "Order",
-            from: businessLabel,
-            address: data.address || "",
-            total: `€${data.total || 0}`,
-          });
-        });
-
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const list = snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
         setPurchases(list);
-      } catch (e) {
-        console.log("Error loading purchases:", e);
+        setLoading(false);
+      },
+      (err) => {
+        console.log("Error loading purchases:", err);
+        setLoading(false);
       }
-    };
+    );
 
-    loadPurchases();
+    return unsub;
   }, [user]);
 
   return (
@@ -110,51 +89,32 @@ export default function ClientProfile() {
           <View style={styles.historyCard}>
             <Text style={styles.historyTitle}>Purchase History</Text>
 
-            {purchases.length === 0 ? (
+            {loading ? (
+              <ActivityIndicator color={GREEN} style={{ marginTop: 10 }} />
+            ) : purchases.length === 0 ? (
               <Text style={styles.emptyText}>No purchases yet.</Text>
             ) : (
-              purchases.map((item) => (
-                <View key={item.id} style={styles.purchaseItem}>
-                  <View style={styles.row}>
-                    <View style={styles.imageWrapper}>
-                      {item.image ? (
-                        <Image
-                          source={{ uri: item.image }}
-                          style={styles.productImage}
-                        />
-                      ) : (
-                        <View
-                          style={[
-                            styles.productImage,
-                            { alignItems: "center", justifyContent: "center" },
-                          ]}
-                        >
-                          <Text style={{ fontSize: 10 }}>No image</Text>
-                        </View>
-                      )}
-                    </View>
+              purchases.map((order) => (
+                <View key={order.id} style={styles.purchaseItem}>
+                  <Text style={styles.infoText}>
+                    <Text style={styles.infoLabel}>From: </Text>
+                    {order.businessEmail || "Business"}
+                  </Text>
 
-                    <View style={styles.infoBox}>
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{item.title}</Text>
-                      </View>
+                  <Text style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Address: </Text>
+                    {order.address}
+                  </Text>
 
-                      <Text style={styles.infoText}>
-                        <Text style={styles.infoLabel}>From: </Text>
-                        {item.from}
-                      </Text>
+                  <Text style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Total: </Text>
+                    {order.total} €
+                  </Text>
 
-                      <Text style={styles.infoText}>
-                        <Text style={styles.infoLabel}>Address: </Text>
-                        {item.address}
-                      </Text>
-
-                      <Text style={styles.infoText}>
-                        <Text style={styles.infoLabel}>Total: </Text>
-                        {item.total}
-                      </Text>
-                    </View>
-                  </View>
+                  <Text style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Status: </Text>
+                    {order.status}
+                  </Text>
 
                   <View style={styles.separator} />
                 </View>
@@ -167,8 +127,6 @@ export default function ClientProfile() {
   );
 }
 
-/* STYLES */
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -178,6 +136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 30,
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -224,6 +183,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
+
   historyCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -241,39 +201,6 @@ const styles = StyleSheet.create({
   },
   purchaseItem: {
     marginBottom: 12,
-  },
-  row: {
-    flexDirection: "row",
-  },
-  imageWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: GREEN,
-    overflow: "hidden",
-    marginRight: 12,
-    backgroundColor: "#fff",
-  },
-  productImage: {
-    width: "100%",
-    height: "100%",
-  },
-  infoBox: {
-    flex: 1,
-  },
-  badge: {
-    backgroundColor: BROWN,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 6,
-    alignSelf: "flex-start",
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "700",
   },
   infoText: {
     fontSize: 14,
