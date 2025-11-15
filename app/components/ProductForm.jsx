@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
 export default function ProductForm({ onSubmit, loading }) {
   const [productName, setProductName] = useState("");
@@ -34,12 +35,34 @@ export default function ProductForm({ onSubmit, loading }) {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
+        quality: 1,
+        base64: false,
       });
 
       if (!result.canceled) {
         const asset = result.assets[0];
-        setSelectedImage(asset); // ruaj objektin e fotos
+        console.log("📷 original asset:", asset);
+
+        // 🔥 resize + compress + base64 (më agresiv)
+        const manipulated = await ImageManipulator.manipulateAsync(
+          asset.uri,
+          [{ resize: { width: 300 } }], // width 300px, height auto
+          {
+            compress: 0.2, // 0.2 = shumë e kompresuar
+            format: ImageManipulator.SaveFormat.JPEG,
+            base64: true,
+          }
+        );
+
+        console.log(
+          "📐 manipulated base64 length:",
+          manipulated.base64 ? manipulated.base64.length : 0
+        );
+
+        setSelectedImage({
+          uri: manipulated.uri,
+          base64: manipulated.base64,
+        });
       }
     } catch (e) {
       console.log("Image pick error:", e);
@@ -48,17 +71,34 @@ export default function ProductForm({ onSubmit, loading }) {
   };
 
   const handlePost = () => {
+    console.log("🟢 handlePost clicked");
+
     if (!onSubmit) {
       console.log("No onSubmit handler passed");
       return;
     }
+
+    const imageBase64 = selectedImage?.base64 || null;
+
+    console.log(
+      "🟢 Sending form data:",
+      imageBase64
+        ? {
+            productName,
+            category: selected,
+            price,
+            description,
+            imageBase64Length: imageBase64.length,
+          }
+        : { productName, category: selected, price, description, imageBase64Length: 0 }
+    );
 
     onSubmit({
       productName,
       category: selected,
       price,
       description,
-      imageUri: selectedImage?.uri || null,
+      imageBase64,
     });
   };
 
@@ -131,7 +171,6 @@ export default function ProductForm({ onSubmit, loading }) {
 
       <Text style={styles.label}>Upload Picture</Text>
 
-      {/* <-- CHANGED: image now displays INSIDE the round uploadButton */}
       <TouchableOpacity
         style={styles.uploadButton}
         onPress={handlePickImage}
@@ -147,8 +186,6 @@ export default function ProductForm({ onSubmit, loading }) {
           <Text style={styles.plus}>＋</Text>
         )}
       </TouchableOpacity>
-
-      {/* removed the large full-width preview so image only lives inside the + button */}
 
       <TouchableOpacity
         style={styles.postBtn}
@@ -216,8 +253,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1B3C1A",
   },
-
-  /* Upload button (circle) — kept same size but now clips the image inside */
   uploadButton: {
     width: 45,
     height: 45,
@@ -226,23 +261,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
-    overflow: "hidden", // IMPORTANT: clips the image to the circle
+    overflow: "hidden",
   },
   plus: {
     color: "#2E5E2D",
     fontSize: 24,
     fontWeight: "bold",
   },
-
-  /* Image that fills the upload button circle exactly */
   uploadImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 50, // keeps it rounded
+    borderRadius: 50,
   },
-
-  /* removed previewImage usage */
-
   postBtn: {
     marginTop: 20,
     backgroundColor: "#DCC9A8",

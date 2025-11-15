@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../firebase/firebaseConfig";
+import { db } from "../../firebase/firebaseConfig"; // ⬅️ VETËM db, JO storage
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "expo-router";
 
@@ -26,49 +26,67 @@ export default function AddProductScreen() {
 
   const [loading, setLoading] = useState(false);
 
-  const handleAdd = async (data) => {
-    if (!user) {
-      Alert.alert("Error", "You must be logged in as a business.");
-      return;
-    }
+const handleAdd = async (data) => {
+  console.log("🟡 handleAdd called with:", {
+    ...data,
+    imageBase64: data.imageBase64
+      ? `length: ${data.imageBase64.length}`
+      : null,
+  });
 
-    const { productName, category, price, description, imageUri } = data;
+  if (!user) {
+    Alert.alert("Error", "You must be logged in as a business.");
+    return;
+  }
 
-    if (!productName || !price) {
-      Alert.alert("Error", "Name and price are required.");
-      return;
-    }
+  const { productName, category, price, description, imageBase64 } = data;
 
-    const numeric = Number(price);
-    if (isNaN(numeric)) {
-      Alert.alert("Error", "Price must be a number.");
-      return;
-    }
+  if (!productName || !price) {
+    Alert.alert("Error", "Name and price are required.");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  const numeric = Number(price);
+  if (isNaN(numeric)) {
+    Alert.alert("Error", "Price must be a number.");
+    return;
+  }
 
-      await addDoc(collection(db, "products"), {
-        name: productName,
-        category: category || "All",
-        price: numeric,
-        description: description || "",
-        imageUrl: imageUri || null,
-        ownerId: user.uid, // businessId
-        ownerEmail: user.email,
-        ownerName: user.displayName || "Business", // 🔥 shtuar
-        createdAt: new Date().toISOString(),
-      });
+  // 🔥 mbrojtje extra: mos lejo më shumë se ~600k karaktere
+  if (imageBase64 && imageBase64.length > 600000) {
+    Alert.alert(
+      "Image too large",
+      `The selected image is too large (${imageBase64.length} chars). Please pick a smaller image or a screenshot.`
+    );
+    return;
+  }
 
-      Alert.alert("Success", "Product posted successfully ✅");
-      router.back();
-    } catch (e) {
-      console.log("Add product error:", e);
-      Alert.alert("Error", "Failed to add product.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+
+    await addDoc(collection(db, "products"), {
+      name: productName,
+      category: category || "All",
+      price: numeric,
+      description: description || "",
+      imageBase64: imageBase64 || null,
+      ownerId: user.uid,
+      ownerEmail: user.email,
+      ownerName: user.displayName || "Business",
+      createdAt: new Date().toISOString(),
+    });
+
+    console.log("✅ Product added successfully");
+    Alert.alert("Success", "Product posted successfully ✅");
+    router.back();
+  } catch (e) {
+    console.log("❌ Add product error:", e);
+    Alert.alert("Error", "Failed to add product.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

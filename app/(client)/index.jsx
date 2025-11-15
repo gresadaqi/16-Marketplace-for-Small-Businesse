@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import {
   collection,
-  getDocs,
   setDoc,
   doc,
   onSnapshot,
@@ -26,7 +25,6 @@ import { useAuth } from "../components/AuthProvider";
 const GREEN = "#2E5E2D";
 const LIGHT_GREEN = "#79AC78";
 const BEIGE = "#F7E7C8";
-const DISABLED_GRAY = "#B0B0B0";
 const CHIP_BROWN = "#462E23";
 const CARD_BORDER = "#2E6E3E";
 
@@ -62,25 +60,30 @@ export default function ClientHome() {
     setSelected(null);
   };
 
-  // LOAD PRODUCTS
-  const loadProducts = async () => {
+  // 🔥 REALTIME LOAD PRODUCTS (jo më getDocs)
+  useEffect(() => {
     setLoading(true);
     setError("");
-    try {
-      const snap = await getDocs(collection(db, "products"));
-      const list = [];
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
-      setProducts(list);
-    } catch (e) {
-      console.log("Error loading products:", e);
-      setError("Failed to load products.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    loadProducts();
+    const productsRef = collection(db, "products");
+    const unsub = onSnapshot(
+      productsRef,
+      (snap) => {
+        const list = snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        setProducts(list);
+        setLoading(false);
+      },
+      (err) => {
+        console.log("Error loading products:", err);
+        setError("Failed to load products.");
+        setLoading(false);
+      }
+    );
+
+    return unsub;
   }, []);
 
   // WATCH CART
@@ -96,6 +99,17 @@ export default function ClientHome() {
     return unsub;
   }, [user]);
 
+  // helper për të zgjedh source-in e fotos (base64 ose url)
+  const getImageSource = (item) => {
+    if (item.imageBase64) {
+      return { uri: `data:image/jpeg;base64,${item.imageBase64}` };
+    }
+    if (item.imageUrl) {
+      return { uri: item.imageUrl };
+    }
+    return null;
+  };
+
   // ADD TO CART
   const handleAddToCart = async (product) => {
     if (!user) return;
@@ -108,6 +122,8 @@ export default function ClientHome() {
           productId: product.id,
           name: product.name,
           price: product.price,
+          // ruaj edhe base64 edhe url, për çdo rast
+          imageBase64: product.imageBase64 || null,
           imageUrl: product.imageUrl || null,
           category: product.category || null,
           businessId: product.ownerId || null,
@@ -164,6 +180,8 @@ export default function ClientHome() {
 
   // PRODUCT CARD
   const renderItem = ({ item }) => {
+    const imgSrc = getImageSource(item);
+
     return (
       <Pressable
         style={styles.productCard}
@@ -171,9 +189,9 @@ export default function ClientHome() {
         activeOpacity={0.85}
       >
         <View style={styles.productImageWrapper}>
-          {item.imageUrl ? (
+          {imgSrc ? (
             <Image
-              source={{ uri: item.imageUrl }}
+              source={imgSrc}
               style={styles.productImage}
               resizeMode="cover"
             />
@@ -265,69 +283,84 @@ export default function ClientHome() {
       </ScrollView>
 
       {/* MODAL */}
-     <Modal visible={modalVisible} transparent animationType="slide">
-  <Pressable style={styles.backdrop} onPress={closeModal}>
-    <Pressable style={styles.modalCard} onPress={() => {}}>
-      <View>
-        {selected?.imageUrl ? (
-          <Image
-            source={{ uri: selected.imageUrl }}
-            style={styles.modalImage}
-          />
-        ) : (
-          <View
-            style={[styles.modalImage, { backgroundColor: "#e9e9e9" }]}
-          />
-        )}
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <Pressable style={styles.backdrop} onPress={closeModal}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <View>
+              {(() => {
+                const imgSrc = selected ? getImageSource(selected) : null;
+                if (imgSrc) {
+                  return (
+                    <Image
+                      source={imgSrc}
+                      style={styles.modalImage}
+                    />
+                  );
+                }
+                return (
+                  <View
+                    style={[
+                      styles.modalImage,
+                      { backgroundColor: "#e9e9e9" },
+                    ]}
+                  />
+                );
+              })()}
 
-        <Text style={styles.modalTitle}>{selected?.name}</Text>
-        <Text style={styles.modalPrice}>{selected?.price} €</Text>
+              <Text style={styles.modalTitle}>{selected?.name}</Text>
+              <Text style={styles.modalPrice}>{selected?.price} €</Text>
 
-        <Text style={styles.modalOwner}>
-  By: {selected?.ownerEmail || selected?.ownerName || "Unknown Business"}
-</Text>
+              <Text style={styles.modalOwner}>
+                By:{" "}
+                {selected?.ownerEmail ||
+                  selected?.ownerName ||
+                  "Unknown Business"}
+              </Text>
 
-        {selected?.category && (
-          <Text style={styles.modalCategory}>
-            Category: {selected.category}
-          </Text>
-        )}
+              {selected?.category && (
+                <Text style={styles.modalCategory}>
+                  Category: {selected.category}
+                </Text>
+              )}
 
-        {selected?.description ? (
-          <Text style={styles.modalDesc}>{selected.description}</Text>
-        ) : (
-          <Text style={styles.modalDescMuted}>No description provided.</Text>
-        )}
-      </View>
+              {selected?.description ? (
+                <Text style={styles.modalDesc}>{selected.description}</Text>
+              ) : (
+                <Text style={styles.modalDescMuted}>
+                  No description provided.
+                </Text>
+              )}
+            </View>
 
-      <View style={styles.modalActions}>
-        <TouchableOpacity
-          disabled={addedProducts.includes(selected?.id)}
-          style={[
-            styles.modalBtn,
-            styles.addBtn,
-            addedProducts.includes(selected?.id) && {
-              backgroundColor: "grey",
-            },
-          ]}
-          onPress={() => handleAddToCart(selected)}
-        >
-          <Text style={styles.modalBtnText}>
-            {addedProducts.includes(selected?.id) ? "Added" : "Add to cart"}
-          </Text>
-        </TouchableOpacity>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                disabled={addedProducts.includes(selected?.id)}
+                style={[
+                  styles.modalBtn,
+                  styles.addBtn,
+                  addedProducts.includes(selected?.id) && {
+                    backgroundColor: "grey",
+                  },
+                ]}
+                onPress={() => handleAddToCart(selected)}
+              >
+                <Text style={styles.modalBtnText}>
+                  {addedProducts.includes(selected?.id)
+                    ? "Added"
+                    : "Add to cart"}
+                </Text>
+              </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.modalBtn, styles.closeBtn]}
-          onPress={closeModal}
-        >
-          <Text style={styles.modalBtnText}>Close</Text>
-        </TouchableOpacity>
-      </View>
-    </Pressable>
-  </Pressable>
-</Modal>
-
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.closeBtn]}
+                onPress={closeModal}
+              >
+                <Text style={styles.modalBtnText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -448,14 +481,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.45)",
     justifyContent: "center",
     paddingHorizontal: 20,
-     paddingVertical: 42,
+    paddingVertical: 42,
   },
   modalCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     elevation: 6,
-     maxHeight: "90%",
+    maxHeight: "90%",
   },
   modalImage: {
     width: "100%",

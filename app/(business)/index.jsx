@@ -16,12 +16,12 @@ import {
 } from "react-native";
 import {
   collection,
-  getDocs,
   query,
   where,
   updateDoc,
   deleteDoc,
   doc,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
@@ -79,29 +79,40 @@ export default function BusinessHome() {
     setIsEditing(false);
   };
 
-  const loadProducts = async () => {
-    if (!user) return;
+  // 🔥 Realtime listener për produktet e biznesit
+  useEffect(() => {
+    if (!user) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError("");
-    try {
-      const q = query(
-        collection(db, "products"),
-        where("ownerId", "==", user.uid)
-      );
-      const snap = await getDocs(q);
-      const list = [];
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
-      setProducts(list);
-    } catch (e) {
-      console.log(e);
-      setError("Failed to load your products.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    loadProducts();
+    const q = query(
+      collection(db, "products"),
+      where("ownerId", "==", user.uid)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const list = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        setProducts(list);
+        setLoading(false);
+      },
+      (err) => {
+        console.log("onSnapshot error:", err);
+        setError("Failed to load your products.");
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [user]);
 
   const handleSaveEdit = async () => {
@@ -117,9 +128,8 @@ export default function BusinessHome() {
 
       await updateDoc(doc(db, "products", selected.id), updated);
 
-      setProducts((prev) =>
-        prev.map((p) => (p.id === selected.id ? { ...p, ...updated } : p))
-      );
+      // s'ka nevojë me update manual listën – onSnapshot e bën vet,
+      // por i mbajmë edhe lokalisht modal-in in sync:
       setSelected((prev) => (prev ? { ...prev, ...updated } : prev));
       setIsEditing(false);
     } catch (e) {
@@ -130,7 +140,7 @@ export default function BusinessHome() {
   const handleDelete = async (product) => {
     try {
       await deleteDoc(doc(db, "products", product.id));
-      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+      // s'ka nevojë me setProducts këtu – onSnapshot e përditëson automatikisht
       if (selected?.id === product.id) closeModal();
     } catch (e) {
       console.log(e);
@@ -143,6 +153,17 @@ export default function BusinessHome() {
     const cat = (p.category || "Other").toLowerCase();
     return cat === selectedCategory.toLowerCase();
   });
+
+  // helper për ta marrë source-in e imazhit (base64 ose url)
+  const getImageSource = (item) => {
+    if (item.imageBase64) {
+      return { uri: `data:image/jpeg;base64,${item.imageBase64}` };
+    }
+    if (item.imageUrl) {
+      return { uri: item.imageUrl };
+    }
+    return null;
+  };
 
   // dizajni i kategorive njësoj si HomeScreen
   const renderCategory = ({ item }) => {
@@ -174,41 +195,44 @@ export default function BusinessHome() {
     );
   };
 
-  // box i produktit – **me emrin e biznesit**
-  const renderItem = ({ item }) => (
-    <Pressable
-      style={styles.productCard}
-      activeOpacity={0.85}
-      onPress={() => openModal(item)}
-    >
-      <View style={styles.productImageWrapper}>
-        {item.imageUrl ? (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.productImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View
-            style={[
-              styles.productImage,
-              { backgroundColor: "#e9e9e9" },
-            ]}
-          />
-        )}
-      </View>
+  // box i produktit – me emrin e biznesit
+  const renderItem = ({ item }) => {
+    const imgSrc = getImageSource(item);
 
-      <View style={styles.bottomInfoBoxSeparated}>
-        <Text style={styles.productName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.productPrice}>{item.price} €</Text>
-        <Text style={styles.businessName} numberOfLines={1}>
-          {item.ownerName || item.ownerEmail || "Your business"}
-        </Text>
-      </View>
-    </Pressable>
-  );
+    return (
+      <Pressable
+        style={styles.productCard}
+        onPress={() => openModal(item)}
+      >
+        <View style={styles.productImageWrapper}>
+          {imgSrc ? (
+            <Image
+              source={imgSrc}
+              style={styles.productImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View
+              style={[
+                styles.productImage,
+                { backgroundColor: "#e9e9e9" },
+              ]}
+            />
+          )}
+        </View>
+
+        <View style={styles.bottomInfoBoxSeparated}>
+          <Text style={styles.productName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.productPrice}>{item.price} €</Text>
+          <Text style={styles.businessName} numberOfLines={1}>
+            {item.ownerName || item.ownerEmail || "Your business"}
+          </Text>
+        </View>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -287,20 +311,26 @@ export default function BusinessHome() {
         <Pressable style={styles.backdrop} onPress={closeModal}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
             <ScrollView style={{ maxHeight: 300 }}>
-              {selected?.imageUrl ? (
-                <Image
-                  source={{ uri: selected.imageUrl }}
-                  style={styles.modalImage}
-                  resizeMode="contain"
-                />
-              ) : (
-                <View
-                  style={[
-                    styles.modalImage,
-                    { backgroundColor: "#e9e9e9" },
-                  ]}
-                />
-              )}
+              {(() => {
+                const imgSrc = selected ? getImageSource(selected) : null;
+                if (imgSrc) {
+                  return (
+                    <Image
+                      source={imgSrc}
+                      style={styles.modalImage}
+                      resizeMode="contain"
+                    />
+                  );
+                }
+                return (
+                  <View
+                    style={[
+                      styles.modalImage,
+                      { backgroundColor: "#e9e9e9" },
+                    ]}
+                  />
+                );
+              })()}
 
               {!isEditing ? (
                 <>
@@ -465,7 +495,7 @@ const styles = StyleSheet.create({
   gridList: { paddingHorizontal: 12, paddingBottom: 24 },
   gridRow: { justifyContent: "space-between", marginBottom: 14 },
 
-  // box-at e produkteve (si në HomeScreen)
+  // box-at e produkteve
   productCard: {
     borderRadius: 15,
     margin: 5,
