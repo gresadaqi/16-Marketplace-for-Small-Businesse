@@ -56,15 +56,23 @@ export default function ClientProfile() {
         const firstItem = data.items?.[0] || {};
 
         const baseOrder = {
-          id: d.id,
-          title: firstItem.name || "Order",
-          from: firstItem.businessName || "Unknown business",
-          address: data.address || "",
-          total: data.total ? `${data.total} €` : "—",
-          image: firstItem.image || firstItem.imageUrl || null,
-          status: data.status || "pending",
-          createdAt: data.createdAt,
-        };
+  id: d.id,
+  title: firstItem.name || "Order",
+
+  // ➜ shfaq email-in e biznesit te "From"
+  from:
+    firstItem.businessEmail ||
+    firstItem.ownerEmail ||
+    firstItem.businessName ||
+    "Unknown business",
+
+  address: data.address || "",
+  total: data.total ? `${data.total} €` : "—",
+  image: firstItem.image || firstItem.imageUrl || null,
+  status: data.status || "pending",
+  createdAt: data.createdAt,
+};
+
 
         if (data.status === "completed") {
           completed.push(baseOrder);
