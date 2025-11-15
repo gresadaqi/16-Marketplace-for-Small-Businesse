@@ -99,10 +99,11 @@ export default function ClientHome() {
           imageUrl: product.imageUrl || null,
           category: product.category || null,
 
-          // 🔥 INFO E BIZNESIT – KJO ËSHTË QË LIDHET ME businessOrders
+          // INFO E BIZNESIT – lidhet me businessOrders
           businessId: product.ownerId || null,
           businessEmail: product.ownerEmail || null,
-          businessName: product.ownerName || "Unknown Business",
+          businessName:
+            product.ownerName || product.ownerEmail || "Unknown Business",
 
           createdAt: new Date().toISOString(),
         },
@@ -228,12 +229,13 @@ export default function ClientHome() {
               )}
 
               <Text style={styles.modalTitle}>{selected?.name}</Text>
-              <Text style={styles.modalPrice}>
-                {selected?.price} €
-              </Text>
+              <Text style={styles.modalPrice}>{selected?.price} €</Text>
 
               <Text style={styles.modalOwner}>
-                By: {selected?.ownerEmail || "Unknown Business"}
+                By:{" "}
+                {selected?.ownerEmail ||
+                  selected?.ownerName ||
+                  "Unknown Business"}
               </Text>
 
               {selected?.category && (
@@ -253,14 +255,11 @@ export default function ClientHome() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                disabled={
-                  !selected || addedProducts.includes(selected.id)
-                }
+                disabled={!selected || addedProducts.includes(selected.id)}
                 style={[
                   styles.modalBtn,
                   styles.addBtn,
-                  (!selected ||
-                    addedProducts.includes(selected.id)) && {
+                  (!selected || addedProducts.includes(selected.id)) && {
                     backgroundColor: DISABLED_GRAY,
                   },
                 ]}

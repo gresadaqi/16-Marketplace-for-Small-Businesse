@@ -14,8 +14,10 @@ import {
   onSnapshot,
   doc,
   updateDoc,
-  addDoc,
   serverTimestamp,
+  getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
@@ -50,7 +52,6 @@ export default function BusinessProfile() {
   useEffect(() => {
     if (!user) return;
 
-    // ⬅️ KY PATH DUHET ME U PËRPUTH ME cart.jsx
     const ordersRef = collection(db, "businessOrders", user.uid, "orders");
 
     const unsub = onSnapshot(
@@ -78,25 +79,86 @@ export default function BusinessProfile() {
   }, [user]);
 
   // -------- CONFIRM / CANCEL ----------
+
   const confirmOrder = async (order) => {
     try {
-      // 1) update business order status
-      const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
-      await updateDoc(ref, {
+      // 1) update business order status -> completed
+      const businessRef = doc(
+        db,
+        "businessOrders",
+        user.uid,
+        "orders",
+        order.id
+      );
+
+      await updateDoc(businessRef, {
         status: "completed",
         updatedAt: serverTimestamp(),
       });
 
-      // 2) krijo purchase te klienti (users/{userId}/orders)
-      if (order.userId) {
-        const { id, ...rest } = order;
-        await addDoc(collection(db, "users", order.userId, "orders"), {
-          ...rest,
-          status: "completed",
-          businessId: user.uid,
-          businessEmail: user.email,
-          createdAt: serverTimestamp(),
-        });
+      // 2) gjej dhe update porosinë te klienti
+      if (!order.userId) {
+        console.log("confirmOrder: missing userId on order", order.id);
+        return;
+      }
+
+      let userOrderId = order.userOrderId;
+
+      // nese nuk kemi userOrderId, provojmë me e gjet me query
+      if (!userOrderId) {
+        try {
+          const userOrdersRef = collection(
+            db,
+            "users",
+            order.userId,
+            "orders"
+          );
+
+          const q = query(
+            userOrdersRef,
+            where("status", "==", "pending"),
+            where("total", "==", order.total),
+            where("address", "==", order.address)
+          );
+
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            userOrderId = snap.docs[0].id;
+            console.log(
+              "confirmOrder: found matching user order",
+              userOrderId
+            );
+          } else {
+            console.log(
+              "confirmOrder: no matching pending user order found for",
+              order.userId,
+              order.id
+            );
+          }
+        } catch (err) {
+          console.log("confirmOrder: error searching user order:", err);
+        }
+      }
+
+      if (userOrderId) {
+        try {
+          const userOrderRef = doc(
+            db,
+            "users",
+            order.userId,
+            "orders",
+            userOrderId
+          );
+
+          await updateDoc(userOrderRef, {
+            status: "completed",
+            businessId: user.uid,
+            businessEmail: user.email,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (err) {
+          console.log("confirmOrder: error updating user order:", err);
+        }
       }
     } catch (e) {
       console.log("Error confirming order:", e);
@@ -161,8 +223,7 @@ export default function BusinessProfile() {
                 <TouchableOpacity
                   style={[
                     styles.dropdownItem,
-                    selectedTab === "ongoing" &&
-                      styles.dropdownItemSelected,
+                    selectedTab === "ongoing" && styles.dropdownItemSelected,
                   ]}
                   onPress={() => {
                     setSelectedTab("ongoing");
@@ -183,8 +244,7 @@ export default function BusinessProfile() {
                 <TouchableOpacity
                   style={[
                     styles.dropdownItem,
-                    selectedTab === "history" &&
-                      styles.dropdownItemSelected,
+                    selectedTab === "history" && styles.dropdownItemSelected,
                   ]}
                   onPress={() => {
                     setSelectedTab("history");
@@ -211,9 +271,7 @@ export default function BusinessProfile() {
             ) : selectedTab === "ongoing" ? (
               <View style={styles.listContainer}>
                 {ongoingOrders.length === 0 ? (
-                  <Text style={styles.emptyText}>
-                    No ongoing orders.
-                  </Text>
+                  <Text style={styles.emptyText}>No ongoing orders.</Text>
                 ) : (
                   ongoingOrders.map((order) => (
                     <View key={order.id} style={styles.orderItem}>
@@ -226,9 +284,7 @@ export default function BusinessProfile() {
                           </View>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>
-                              Address:{" "}
-                            </Text>
+                            <Text style={styles.infoLabel}>Address: </Text>
                             {order.address}
                           </Text>
 
@@ -254,9 +310,7 @@ export default function BusinessProfile() {
                               style={styles.cancelButton}
                               onPress={() => cancelOrder(order)}
                             >
-                              <Text style={styles.cancelText}>
-                                Cancel
-                              </Text>
+                              <Text style={styles.cancelText}>Cancel</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -270,9 +324,7 @@ export default function BusinessProfile() {
             ) : (
               <View style={styles.listContainer}>
                 {historyOrders.length === 0 ? (
-                  <Text style={styles.emptyText}>
-                    No orders in history.
-                  </Text>
+                  <Text style={styles.emptyText}>No orders in history.</Text>
                 ) : (
                   historyOrders.map((order) => (
                     <View key={order.id} style={styles.orderItem}>
@@ -285,9 +337,7 @@ export default function BusinessProfile() {
                           </View>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>
-                              Address:{" "}
-                            </Text>
+                            <Text style={styles.infoLabel}>Address: </Text>
                             {order.address}
                           </Text>
 
@@ -302,9 +352,7 @@ export default function BusinessProfile() {
                           </Text>
 
                           <Text style={styles.infoText}>
-                            <Text style={styles.infoLabel}>
-                              Status:{" "}
-                            </Text>
+                            <Text style={styles.infoLabel}>Status: </Text>
                             {order.status}
                           </Text>
                         </View>

@@ -54,8 +54,9 @@ export default function AddProductScreen() {
         price: numeric,
         description: description || "",
         imageUrl: imageUri || null,
-        ownerId: user.uid,        // ⬅️ KY PËRDORËT SI businessId TE CART/ORDERS
+        ownerId: user.uid, // businessId
         ownerEmail: user.email,
+        ownerName: user.displayName || "Business", // 🔥 shtuar
         createdAt: new Date().toISOString(),
       });
 

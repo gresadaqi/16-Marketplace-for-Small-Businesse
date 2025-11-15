@@ -170,7 +170,6 @@ export default function CartScreen() {
 
       console.log("Saving user order with data:", userOrderData);
 
-      // ruaj te users/{uid}/orders
       const userOrderRef = await addDoc(
         collection(db, "users", user.uid, "orders"),
         userOrderData
@@ -208,8 +207,7 @@ export default function CartScreen() {
           paymentMethod: "cash_on_delivery",
           status: "pending",
           createdAt: serverTimestamp(),
-          // opsionale
-          userOrderId: userOrderRef.id,
+          userOrderId: userOrderRef.id, // 🔗 lidhet me order te klientit
         };
 
         console.log(
@@ -218,8 +216,6 @@ export default function CartScreen() {
           businessOrderData
         );
 
-        // 🔥 PATH-I DUHET TË PËRPUTHET ME RULES:
-        // match /businessOrders/{businessId}/orders/{orderId}
         await addDoc(
           collection(db, "businessOrders", businessId, "orders"),
           businessOrderData
@@ -247,8 +243,7 @@ export default function CartScreen() {
       console.log("Error ne placeOrder:", e);
       Alert.alert(
         "Gabim",
-        "Diçka shkoi keq gjatë vendosjes së porosisë.\n" +
-          (e?.message || "")
+        "Diçka shkoi keq gjatë vendosjes së porosisë.\n" + (e?.message || "")
       );
     }
   };

@@ -39,10 +39,15 @@ export default function ClientProfile() {
     const unsub = onSnapshot(
       ref,
       (snap) => {
-        const list = snap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
+        const list = snap.docs
+          .map((d) => ({
+            id: d.id,
+            ...d.data(),
+          }))
+          .sort(
+            (a, b) =>
+              (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+          );
         setPurchases(list);
         setLoading(false);
       },
@@ -98,7 +103,10 @@ export default function ClientProfile() {
                 <View key={order.id} style={styles.purchaseItem}>
                   <Text style={styles.infoText}>
                     <Text style={styles.infoLabel}>From: </Text>
-                    {order.businessEmail || "Business"}
+                    {order.businessEmail ||
+                      order.items?.[0]?.businessEmail ||
+                      order.items?.[0]?.businessName ||
+                      "Business"}
                   </Text>
 
                   <Text style={styles.infoText}>
