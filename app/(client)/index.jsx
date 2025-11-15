@@ -284,8 +284,8 @@ export default function ClientHome() {
         <Text style={styles.modalPrice}>{selected?.price} €</Text>
 
         <Text style={styles.modalOwner}>
-          By: {selected?.ownerName || selected?.ownerEmail || "Unknown Business"}
-        </Text>
+  By: {selected?.ownerEmail || selected?.ownerName || "Unknown Business"}
+</Text>
 
         {selected?.category && (
           <Text style={styles.modalCategory}>
