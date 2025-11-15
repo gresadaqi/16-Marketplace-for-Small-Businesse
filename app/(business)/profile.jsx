@@ -48,6 +48,11 @@ export default function BusinessProfile() {
   const currentTitle =
     selectedTab === "ongoing" ? "Ongoing Orders" : "Order History";
 
+  // 👉 EMRI I BIZNESIT NGA EMAILI (pjesa para @)
+  const businessName = user?.email
+    ? user.email.split("@")[0]
+    : "Business Name";
+
   // -------- LOAD BUSINESS ORDERS ----------
   useEffect(() => {
     if (!user) return;
@@ -78,9 +83,46 @@ export default function BusinessProfile() {
     return unsub;
   }, [user]);
 
+  // helper për me gjet userOrderId nëse mungon
+  const findUserOrderId = async (order) => {
+    if (!order.userId) return null;
+
+    // nëse order e ka userOrderId, kthe direkt
+    if (order.userOrderId) return order.userOrderId;
+
+    try {
+      const userOrdersRef = collection(db, "users", order.userId, "orders");
+      const q = query(
+        userOrdersRef,
+        where("status", "==", "pending"),
+        where("total", "==", order.total),
+        where("address", "==", order.address)
+      );
+
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const id = snap.docs[0].id;
+        console.log("findUserOrderId: found", id);
+        return id;
+      } else {
+        console.log(
+          "findUserOrderId: no matching pending user order",
+          order.userId,
+          order.id
+        );
+      }
+    } catch (err) {
+      console.log("findUserOrderId error:", err);
+    }
+
+    return null;
+  };
+
   // -------- CONFIRM / CANCEL ----------
 
   const confirmOrder = async (order) => {
+    if (!user) return;
+
     try {
       // 1) update business order status -> completed
       const businessRef = doc(
@@ -96,49 +138,13 @@ export default function BusinessProfile() {
         updatedAt: serverTimestamp(),
       });
 
-      // 2) gjej dhe update porosinë te klienti
+      // 2) update order te klienti
       if (!order.userId) {
         console.log("confirmOrder: missing userId on order", order.id);
         return;
       }
 
-      let userOrderId = order.userOrderId;
-
-      // nese nuk kemi userOrderId, provojmë me e gjet me query
-      if (!userOrderId) {
-        try {
-          const userOrdersRef = collection(
-            db,
-            "users",
-            order.userId,
-            "orders"
-          );
-
-          const q = query(
-            userOrdersRef,
-            where("status", "==", "pending"),
-            where("total", "==", order.total),
-            where("address", "==", order.address)
-          );
-
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            userOrderId = snap.docs[0].id;
-            console.log(
-              "confirmOrder: found matching user order",
-              userOrderId
-            );
-          } else {
-            console.log(
-              "confirmOrder: no matching pending user order found for",
-              order.userId,
-              order.id
-            );
-          }
-        } catch (err) {
-          console.log("confirmOrder: error searching user order:", err);
-        }
-      }
+      let userOrderId = order.userOrderId || (await findUserOrderId(order));
 
       if (userOrderId) {
         try {
@@ -166,12 +172,33 @@ export default function BusinessProfile() {
   };
 
   const cancelOrder = async (order) => {
+    if (!user) return;
+
     try {
+      // 1) update biznes order
       const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
       await updateDoc(ref, {
         status: "cancelled",
         updatedAt: serverTimestamp(),
       });
+
+      // 2) (opsionale) update edhe user order -> cancelled
+      if (order.userId) {
+        let userOrderId = order.userOrderId || (await findUserOrderId(order));
+        if (userOrderId) {
+          const userOrderRef = doc(
+            db,
+            "users",
+            order.userId,
+            "orders",
+            userOrderId
+          );
+          await updateDoc(userOrderRef, {
+            status: "cancelled",
+            updatedAt: serverTimestamp(),
+          });
+        }
+      }
     } catch (e) {
       console.log("Error cancelling order:", e);
     }
@@ -192,7 +219,7 @@ export default function BusinessProfile() {
 
             <View style={styles.infoContainer}>
               <Text style={styles.nameText}>
-                {user?.displayName || "Business Name"}
+                {businessName}
               </Text>
               <Text style={styles.emailText}>
                 {user?.email || "email@example.com"}
