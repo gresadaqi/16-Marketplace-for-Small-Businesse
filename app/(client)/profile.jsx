@@ -1,3 +1,4 @@
+// ClientProfile.jsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -7,12 +8,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  ActivityIndicator,
 } from "react-native";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "expo-router";
+import { db } from "../../firebase/firebaseConfig";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 
 const GREEN = "#2E5E2D";
 const BEIGE = "#EADFC4";
@@ -23,50 +28,73 @@ export default function ClientProfile() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const [purchases, setPurchases] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [completedOrders, setCompletedOrders] = useState([]);
 
   const handleLogout = async () => {
     await logout();
     router.replace("/(auth)/login");
   };
 
+  // -------------------------------
+  // LEXO POROSITË NGA users/{uid}/orders
+  // -------------------------------
   useEffect(() => {
-    if (!user) return;
+    if (!user?.uid) return;
 
-    const ref = collection(db, "users", user.uid, "orders");
-
-    const unsub = onSnapshot(
-      ref,
-      (snap) => {
-        const list = snap.docs
-          .map((d) => ({
-            id: d.id,
-            ...d.data(),
-          }))
-          .sort(
-            (a, b) =>
-              (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-          );
-        setPurchases(list);
-        setLoading(false);
-      },
-      (err) => {
-        console.log("Error loading purchases:", err);
-        setLoading(false);
-      }
+    const q = query(
+      collection(db, "users", user.uid, "orders"),
+      orderBy("createdAt", "desc")
     );
 
-    return unsub;
-  }, [user]);
+    const unsub = onSnapshot(q, (snap) => {
+      const pending = [];
+      const completed = [];
+
+      snap.forEach((d) => {
+        const data = d.data();
+        const firstItem = data.items?.[0] || {};
+
+        const baseOrder = {
+          id: d.id,
+          title: firstItem.name || "Order",
+          from: firstItem.businessName || "Unknown business",
+          address: data.address || "",
+          total: data.total ? `${data.total} €` : "—",
+          image: firstItem.image || firstItem.imageUrl || null,
+          status: data.status || "pending",
+          createdAt: data.createdAt,
+        };
+
+        if (data.status === "completed") {
+          completed.push(baseOrder);
+        } else if (data.status === "pending") {
+          pending.push(baseOrder);
+        }
+      });
+
+      setPendingOrders(pending);
+      setCompletedOrders(completed);
+    });
+
+    return () => unsub();
+  }, [user?.uid]);
+
+  // -----------------------------------------------------
+  // EMRI DEL VETË NGA EMAILI (Pjesa para '@')
+  // -----------------------------------------------------
+  const extractedName = user?.email
+    ? user.email.split("@")[0]
+    : "No name";
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={styles.container}>
+
           {/* HEADER */}
           <View style={styles.header}>
-            <View style={styles.avatarOuter}>
+            <View className="avatarOuter" style={styles.avatarOuter}>
               <Image
                 source={require("../../assets/profile.png")}
                 style={styles.avatarImage}
@@ -74,12 +102,11 @@ export default function ClientProfile() {
             </View>
 
             <View style={styles.infoContainer}>
-              <Text style={styles.nameText}>
-                {user?.displayName || "Name Surname"}
-              </Text>
-              <Text style={styles.emailText}>
-                {user?.email || "email@example.com"}
-              </Text>
+              {/* NAME */}
+              <Text style={styles.nameText}>{extractedName}</Text>
+
+              {/* EMAIL */}
+              <Text style={styles.emailText}>{user?.email}</Text>
 
               <TouchableOpacity
                 style={styles.signOutButton}
@@ -90,50 +117,134 @@ export default function ClientProfile() {
             </View>
           </View>
 
-          {/* PURCHASE HISTORY */}
+          {/* ONGOING ORDERS */}
           <View style={styles.historyCard}>
-            <Text style={styles.historyTitle}>Purchase History</Text>
+            <Text style={styles.historyTitle}>Ongoing Orders</Text>
 
-            {loading ? (
-              <ActivityIndicator color={GREEN} style={{ marginTop: 10 }} />
-            ) : purchases.length === 0 ? (
-              <Text style={styles.emptyText}>No purchases yet.</Text>
+            {pendingOrders.length === 0 ? (
+              <Text style={styles.emptyText}>No ongoing orders.</Text>
             ) : (
-              purchases.map((order) => (
-                <View key={order.id} style={styles.purchaseItem}>
-                  <Text style={styles.infoText}>
-                    <Text style={styles.infoLabel}>From: </Text>
-                    {order.businessEmail ||
-                      order.items?.[0]?.businessEmail ||
-                      order.items?.[0]?.businessName ||
-                      "Business"}
-                  </Text>
+              pendingOrders.map((item) => (
+                <View key={item.id} style={styles.purchaseItem}>
+                  <View style={styles.row}>
 
-                  <Text style={styles.infoText}>
-                    <Text style={styles.infoLabel}>Address: </Text>
-                    {order.address}
-                  </Text>
+                    {/* IMAGE */}
+                    <View style={styles.imageWrapper}>
+                      {item.image ? (
+                        <Image
+                          source={{ uri: item.image }}
+                          style={styles.productImage}
+                        />
+                      ) : (
+                        <Image
+                          source={require("../../assets/profile.png")}
+                          style={styles.productImage}
+                        />
+                      )}
+                    </View>
 
-                  <Text style={styles.infoText}>
-                    <Text style={styles.infoLabel}>Total: </Text>
-                    {order.total} €
-                  </Text>
+                    {/* INFO */}
+                    <View style={styles.infoBox}>
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{item.title}</Text>
+                      </View>
 
-                  <Text style={styles.infoText}>
-                    <Text style={styles.infoLabel}>Status: </Text>
-                    {order.status}
-                  </Text>
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>From: </Text>
+                        {item.from}
+                      </Text>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>Address: </Text>
+                        {item.address}
+                      </Text>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>Total: </Text>
+                        {item.total}
+                      </Text>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>Status: </Text>
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
 
                   <View style={styles.separator} />
                 </View>
               ))
             )}
           </View>
+
+          {/* PURCHASE HISTORY */}
+          <View style={styles.historyCard}>
+            <Text style={styles.historyTitle}>Purchase History</Text>
+
+            {completedOrders.length === 0 ? (
+              <Text style={styles.emptyText}>No completed purchases yet.</Text>
+            ) : (
+              completedOrders.map((item) => (
+                <View key={item.id} style={styles.purchaseItem}>
+                  <View style={styles.row}>
+                    {/* IMAGE */}
+                    <View style={styles.imageWrapper}>
+                      {item.image ? (
+                        <Image
+                          source={{ uri: item.image }}
+                          style={styles.productImage}
+                        />
+                      ) : (
+                        <Image
+                          source={require("../../assets/profile.png")}
+                          style={styles.productImage}
+                        />
+                      )}
+                    </View>
+
+                    {/* INFO */}
+                    <View style={styles.infoBox}>
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{item.title}</Text>
+                      </View>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>From: </Text>
+                        {item.from}
+                      </Text>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>Address: </Text>
+                        {item.address}
+                      </Text>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>Total: </Text>
+                        {item.total}
+                      </Text>
+
+                      <Text style={styles.infoText}>
+                        <Text style={styles.infoLabel}>Status: </Text>
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.separator} />
+                </View>
+              ))
+            )}
+          </View>
+
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+/* ------------------------------------ */
+/*              STYLES                  */
+/* ------------------------------------ */
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -145,6 +256,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
 
+  /* HEADER */
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -192,6 +304,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
+  /* LIST CARDS */
   historyCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -209,6 +322,38 @@ const styles = StyleSheet.create({
   },
   purchaseItem: {
     marginBottom: 12,
+  },
+  row: {
+    flexDirection: "row",
+  },
+  imageWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: GREEN,
+    overflow: "hidden",
+    marginRight: 12,
+  },
+  productImage: {
+    width: "100%",
+    height: "100%",
+  },
+  infoBox: {
+    flex: 1,
+  },
+  badge: {
+    backgroundColor: BROWN,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 6,
+    alignSelf: "flex-start",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
   },
   infoText: {
     fontSize: 14,
