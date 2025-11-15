@@ -27,11 +27,22 @@ import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
 
 const GREEN = "#2E5E2D";
-const BEIGE = "#EADFC4";
+const BEIGE = "#F7E7C8";
 const CHIP_BROWN = "#462E23";
 const CARD_BORDER = "#2E6E3E";
 
-const CATEGORIES = ["All", "Accessories", "Clothes", "Art", "Other"];
+// të njëjtat kategori si në HomeScreen
+const CATEGORIES = [
+  { id: 1, name: "All", icon: require("../../assets/all.png.png") },
+  { id: 2, name: "Clothes", icon: require("../../assets/tshirt.png") },
+  {
+    id: 3,
+    name: "Accessories",
+    icon: require("../../assets/accesories.png"),
+  },
+  { id: 4, name: "Art", icon: require("../../assets/art.png") },
+  { id: 5, name: "Other", icon: require("../../assets/others.png") },
+];
 
 export default function BusinessHome() {
   const { user } = useAuth();
@@ -42,16 +53,15 @@ export default function BusinessHome() {
   const [selected, setSelected] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // edit
+  // edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editCategory, setEditCategory] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  // filter
+  // filtër kategorish – default All
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const openModal = (item) => {
     setSelected(item);
@@ -127,14 +137,44 @@ export default function BusinessHome() {
     }
   };
 
-  // filter sipas kategorisë
+  // filtro produktet sipas kategorisë së zgjedhur
   const filteredProducts = products.filter((p) => {
     if (selectedCategory === "All") return true;
     const cat = (p.category || "Other").toLowerCase();
     return cat === selectedCategory.toLowerCase();
   });
 
-  // 👉 dizajni i box-it si në screenshot
+  // dizajni i kategorive njësoj si HomeScreen
+  const renderCategory = ({ item }) => {
+    const isSelected = selectedCategory === item.name;
+    return (
+      <View style={{ alignItems: "center", marginBottom: 12 }}>
+        <TouchableOpacity
+          style={[
+            styles.categoryBox,
+            isSelected && styles.categoryBoxActive,
+          ]}
+          onPress={() => setSelectedCategory(item.name)}
+        >
+          <Image
+            source={item.icon}
+            style={styles.categoryImage}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <Text
+          style={[
+            styles.categoryText,
+            isSelected && styles.categoryTextActive,
+          ]}
+        >
+          {item.name}
+        </Text>
+      </View>
+    );
+  };
+
+  // box i produktit – **me emrin e biznesit**
   const renderItem = ({ item }) => (
     <Pressable
       style={styles.productCard}
@@ -163,6 +203,9 @@ export default function BusinessHome() {
           {item.name}
         </Text>
         <Text style={styles.productPrice}>{item.price} €</Text>
+        <Text style={styles.businessName} numberOfLines={1}>
+          {item.ownerName || item.ownerEmail || "Your business"}
+        </Text>
       </View>
     </Pressable>
   );
@@ -177,45 +220,21 @@ export default function BusinessHome() {
           </Text>
         </View>
 
-        {/* Dropdown filter */}
-        {products.length > 0 && (
-          <View style={styles.filterBar}>
-            <Text style={styles.filterLabel}>Category</Text>
-            <TouchableOpacity
-              style={styles.filterDropdown}
-              onPress={() => setDropdownOpen((o) => !o)}
-            >
-              <Text style={styles.filterText}>{selectedCategory}</Text>
-              <Text style={styles.filterIcon}>
-                {dropdownOpen ? "▲" : "▼"}
-              </Text>
-            </TouchableOpacity>
+        {/* CATEGORY – si në HomeScreen */}
+        <View style={styles.catSection}>
+          <Text style={styles.catTitle}>Category</Text>
+          <View style={styles.catUnderline} />
 
-            {dropdownOpen && (
-              <View style={styles.filterList}>
-                {CATEGORIES.map((cat) => (
-                  <TouchableOpacity
-                    key={cat}
-                    style={styles.filterItem}
-                    onPress={() => {
-                      setSelectedCategory(cat);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.filterItemText,
-                        selectedCategory === cat && styles.filterItemTextActive,
-                      ]}
-                    >
-                      {cat}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
+          <FlatList
+            data={CATEGORIES}
+            renderItem={renderCategory}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={4}
+            ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+            columnWrapperStyle={{ justifyContent: "space-between" }}
+            scrollEnabled={false}
+          />
+        </View>
 
         {loading && (
           <View style={styles.center}>
@@ -248,7 +267,7 @@ export default function BusinessHome() {
                 data={filteredProducts}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
-                numColumns={4}
+                numColumns={3}
                 columnWrapperStyle={styles.gridRow}
                 contentContainerStyle={styles.gridList}
                 scrollEnabled={false}
@@ -258,7 +277,7 @@ export default function BusinessHome() {
         )}
       </ScrollView>
 
-      {/* MODAL: view / edit / delete */}
+      {/* MODAL: EDIT + DELETE, me emrin e biznesit */}
       <Modal
         visible={modalVisible}
         transparent
@@ -287,6 +306,12 @@ export default function BusinessHome() {
                 <>
                   <Text style={styles.modalTitle}>{selected?.name}</Text>
                   <Text style={styles.modalPrice}>{selected?.price} €</Text>
+                  <Text style={styles.modalOwner}>
+                    By:{" "}
+                    {selected?.ownerName ||
+                      selected?.ownerEmail ||
+                      "Your business"}
+                  </Text>
                   {selected?.category ? (
                     <Text style={styles.modalCategory}>
                       Category: {selected.category}
@@ -369,7 +394,7 @@ export default function BusinessHome() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#F7E7C8" },
+  safeArea: { flex: 1, backgroundColor: BEIGE },
   pageWrap: {
     width: "100%",
     maxWidth: 420,
@@ -382,52 +407,50 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "700", color: GREEN },
   subtitle: { fontSize: 14, color: "#555", marginTop: 4 },
 
-  // dropdown filter
-  filterBar: {
-    paddingHorizontal: 16,
+  /* CATEGORY – si në HomeScreen */
+  catSection: { paddingHorizontal: 16, marginTop: 6, marginBottom: 10 },
+  catTitle: { fontSize: 18, color: "#2E6E3E", fontWeight: "bold" },
+  catUnderline: {
+    height: 2,
+    backgroundColor: "#faf8f7ff",
+    width: 180,
     marginBottom: 10,
+    marginTop: 3,
+    borderRadius: 2,
   },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: GREEN,
-    marginBottom: 4,
-  },
-  filterDropdown: {
-    flexDirection: "row",
+  categoryBox: {
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FBF2E3",
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#e1d4bd",
+    justifyContent: "center",
+    backgroundColor: "#462e23ff",
+    padding: 15,
+    borderRadius: 15,
+    width: 80,
+    height: 75,
   },
-  filterText: {
-    fontSize: 14,
-    color: GREEN,
-    fontWeight: "700",
+  categoryBoxActive: {
+    borderWidth: 2,
+    borderColor: "#F7E7C8",
   },
-  filterIcon: { fontSize: 12, color: GREEN },
-  filterList: {
-    marginTop: 6,
-    backgroundColor: "#FFF9EF",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e1d4bd",
-    overflow: "hidden",
+  categoryImage: {
+    width: 100,
+    height: 80,
   },
-  filterItem: { paddingVertical: 8, paddingHorizontal: 12 },
-  filterItemText: { fontSize: 14, color: GREEN },
-  filterItemTextActive: { fontWeight: "700" },
+  categoryText: {
+    fontSize: 13,
+    color: "#2E6E3E",
+    marginTop: 5,
+    fontWeight: "500",
+  },
+  categoryTextActive: {
+    textDecorationLine: "underline",
+  },
 
   sectionTitle: {
-    color: GREEN,
-    fontWeight: "700",
-    fontSize: 14,
+    color: "#2E6E3E",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginTop: 10,
     paddingHorizontal: 16,
-    marginTop: 6,
   },
   sectionDivider: {
     height: 2,
@@ -442,11 +465,11 @@ const styles = StyleSheet.create({
   gridList: { paddingHorizontal: 12, paddingBottom: 24 },
   gridRow: { justifyContent: "space-between", marginBottom: 14 },
 
-  // 🔥 dizajni i box-ave si në screenshot
+  // box-at e produkteve (si në HomeScreen)
   productCard: {
     borderRadius: 15,
     margin: 5,
-    width: "20%",
+    width: "31%",
     overflow: "hidden",
     elevation: 3,
   },
@@ -481,13 +504,18 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 2,
   },
+  businessName: {
+    fontSize: 9,
+    color: "#F7E7C8",
+    marginTop: 2,
+  },
 
   center: { justifyContent: "center", alignItems: "center" },
   errorText: { color: "red", paddingHorizontal: 20, marginBottom: 8 },
   emptyText: { textAlign: "center", color: "#777", marginTop: 40 },
   emptyTextSmall: { textAlign: "center", color: "#777", marginTop: 10 },
 
-  // modal
+  // MODAL
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -509,6 +537,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: "700", color: "#222" },
   modalPrice: { fontSize: 16, color: GREEN, marginTop: 4, marginBottom: 6 },
+  modalOwner: { fontSize: 12, color: "#444", marginBottom: 4 },
   modalCategory: {
     fontSize: 12,
     color: "#1a1a1a",
