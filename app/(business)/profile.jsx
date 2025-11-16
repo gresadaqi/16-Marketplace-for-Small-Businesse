@@ -48,12 +48,10 @@ export default function BusinessProfile() {
   const currentTitle =
     selectedTab === "ongoing" ? "Ongoing Orders" : "Order History";
 
-  // 👉 EMRI I BIZNESIT NGA EMAILI (pjesa para @)
   const businessName = user?.email
     ? user.email.split("@")[0]
     : "Business Name";
 
-  // -------- LOAD BUSINESS ORDERS ----------
   useEffect(() => {
     if (!user) return;
 
@@ -83,7 +81,6 @@ export default function BusinessProfile() {
     return unsub;
   }, [user]);
 
-  // helper për me gjet userOrderId nëse mungon
   const findUserOrderId = async (order) => {
     if (!order.userId) return null;
 
@@ -117,7 +114,6 @@ export default function BusinessProfile() {
     return null;
   };
 
-  // 🔧 helper për me përditësu statusin e produkteve të një order-i
 const updateProductsStatus = async (order, newStatus) => {
   try {
     const items = order.items || [];
@@ -139,13 +135,10 @@ const updateProductsStatus = async (order, newStatus) => {
   }
 };
 
-  // -------- CONFIRM / CANCEL ----------
-
    const confirmOrder = async (order) => {
     if (!user) return;
 
     try {
-      // 1) update business order status -> completed
       const businessRef = doc(
         db,
         "businessOrders",
@@ -159,10 +152,8 @@ const updateProductsStatus = async (order, newStatus) => {
         updatedAt: serverTimestamp(),
       });
 
-      // 2) update order te klienti
       if (!order.userId) {
         console.log("confirmOrder: missing userId on order", order.id);
-        // edhe nëse s'kemi userId, prap e bojmë sold produktin
       } else {
         let userOrderId = order.userOrderId || (await findUserOrderId(order));
 
@@ -188,7 +179,6 @@ const updateProductsStatus = async (order, newStatus) => {
         }
       }
 
-      // 3) ✅ produktet -> sold (mos me u pa kurrë më)
       await updateProductsStatus(order, "sold");
     } catch (e) {
       console.log("Error confirming order:", e);
@@ -199,14 +189,12 @@ const cancelOrder = async (order) => {
   if (!user) return;
 
   try {
-    // 1) update biznes order
     const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
     await updateDoc(ref, {
       status: "cancelled",
       updatedAt: serverTimestamp(),
     });
 
-    // 2) (opsionale) update edhe user order -> cancelled
     if (order.userId) {
       let userOrderId = order.userOrderId || (await findUserOrderId(order));
       if (userOrderId) {
@@ -224,14 +212,12 @@ const cancelOrder = async (order) => {
       }
     }
 
-    // 3) ✅ produktet kthehen 'available' që me u pa prap në shop
     await updateProductsStatus(order, "available");
   } catch (e) {
     console.log("Error cancelling order:", e);
   }
 };
 
-  // 🔥 KËTU: kthe krejt emrat e produkteve si string
   const getProductsText = (order) => {
     const items = order.items || [];
     if (!items.length) return "—";
@@ -243,7 +229,7 @@ const cancelOrder = async (order) => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={styles.container}>
-          {/* HEADER */}
+          {}
           <View style={styles.header}>
             <View style={styles.avatarOuter}>
               <Image
@@ -267,7 +253,7 @@ const cancelOrder = async (order) => {
             </View>
           </View>
 
-          {/* CARD */}
+          {}
           <View style={styles.ordersCard}>
             <TouchableOpacity
               style={styles.sectionHeader}
@@ -343,7 +329,7 @@ const cancelOrder = async (order) => {
                             </Text>
                           </View>
 
-                          {/* 👉 KREJT EMRAT E PRODUKTEVE */}
+                          {}
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Products: </Text>
                             {getProductsText(order)}
@@ -402,7 +388,7 @@ const cancelOrder = async (order) => {
                             </Text>
                           </View>
 
-                          {/* 👉 KREJT EMRAT E PRODUKTEVE */}
+                          {}
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Products: </Text>
                             {getProductsText(order)}
