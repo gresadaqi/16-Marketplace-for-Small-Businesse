@@ -25,7 +25,7 @@ Ndërsa klientët mund të:
 Qëllimi kryesor është të **fuqizohen bizneset e vogla** dhe të kontribuohet në **zhvillimin digjital të ekonomisë së Kosovës**.
 
 
-## Faza Aktual: Prototip (Faza 1)
+## Faza 1: Prototip (Faza 1)
 Në këtë fazë, aplikacioni përfshin:
 
 - Navigim bazë (Home, Cart, Profile)  
