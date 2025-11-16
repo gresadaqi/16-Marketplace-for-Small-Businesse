@@ -33,7 +33,7 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // checkout state
+  
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [address, setAddress] = useState("");
@@ -143,7 +143,7 @@ export default function CartScreen() {
     try {
       console.log("PlaceOrder pressed");
 
-      // 1) përgatis artikujt nga cart
+      
       const preparedItems = items.map((it) => ({
         cartItemId: it.id,
         productId: it.productId || it.id,
@@ -156,7 +156,7 @@ export default function CartScreen() {
 
       console.log("preparedItems:", preparedItems);
 
-      // 2) order për user-in
+      
       const userOrderData = {
         userId: user.uid,
         userEmail: user.email,
@@ -178,7 +178,7 @@ export default function CartScreen() {
 
       console.log("User order saved id:", userOrderRef.id);
 
-      // 3) NDARJA E ITEM-ave sipas biznesit
+     
       const byBusiness = {};
       for (const it of preparedItems) {
         if (!it.businessId) continue;
@@ -191,7 +191,7 @@ export default function CartScreen() {
       const businessIds = Object.keys(byBusiness);
       console.log("Business IDs:", businessIds);
 
-      // 4) order për secilin biznes
+      
       for (const businessId of businessIds) {
         const businessItems = byBusiness[businessId];
 
@@ -208,7 +208,7 @@ export default function CartScreen() {
           paymentMethod: "cash_on_delivery",
           status: "pending",
           createdAt: serverTimestamp(),
-          userOrderId: userOrderRef.id, // 🔗 lidhet me order te klientit
+          userOrderId: userOrderRef.id,
         };
 
         console.log(
@@ -223,7 +223,7 @@ export default function CartScreen() {
         );
       }
 
-            // 4) order për secilin biznes
+           
       for (const businessId of businessIds) {
         const businessItems = byBusiness[businessId];
 
@@ -240,7 +240,7 @@ export default function CartScreen() {
           paymentMethod: "cash_on_delivery",
           status: "pending",
           createdAt: serverTimestamp(),
-          userOrderId: userOrderRef.id, // 🔗 lidhet me order te klientit
+          userOrderId: userOrderRef.id, 
         };
 
         console.log(
@@ -255,7 +255,7 @@ export default function CartScreen() {
         );
       }
 
-      // 5) ✅ vendos produktet si "reserved" që mos me dal më në Home
+     
       for (const it of preparedItems) {
         if (!it.productId) continue;
         try {
@@ -267,7 +267,7 @@ export default function CartScreen() {
         }
       }
 
-      // 6) fshij artikujt nga cart
+      
       for (const it of items) {
         try {
           await deleteDoc(doc(db, "users", user.uid, "cart", it.id));
@@ -276,7 +276,7 @@ export default function CartScreen() {
         }
       }
 
-      // 5) fshij artikujt nga cart
+      
       for (const it of items) {
         try {
           await deleteDoc(doc(db, "users", user.uid, "cart", it.id));

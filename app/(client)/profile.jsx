@@ -1,4 +1,4 @@
-// ClientProfile.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -36,9 +36,7 @@ export default function ClientProfile() {
     router.replace("/(auth)/login");
   };
 
-  // -------------------------------
-  // LEXO POROSITË NGA users/{uid}/orders
-  // -------------------------------
+
   useEffect(() => {
     if (!user?.uid) return;
 
@@ -59,7 +57,7 @@ export default function ClientProfile() {
   id: d.id,
   title: firstItem.name || "Order",
 
-  // ➜ shfaq email-in e biznesit te "From"
+
   from:
     firstItem.businessEmail ||
     firstItem.ownerEmail ||
@@ -88,9 +86,7 @@ export default function ClientProfile() {
     return () => unsub();
   }, [user?.uid]);
 
-  // -----------------------------------------------------
-  // EMRI DEL VETË NGA EMAILI (Pjesa para '@')
-  // -----------------------------------------------------
+ 
   const extractedName = user?.email
     ? user.email.split("@")[0]
     : "No name";
@@ -185,7 +181,7 @@ export default function ClientProfile() {
             )}
           </View>
 
-          {/* PURCHASE HISTORY */}
+      
           <View style={styles.historyCard}>
             <Text style={styles.historyTitle}>Purchase History</Text>
 
@@ -195,7 +191,7 @@ export default function ClientProfile() {
               completedOrders.map((item) => (
                 <View key={item.id} style={styles.purchaseItem}>
                   <View style={styles.row}>
-                    {/* IMAGE */}
+                    
                     <View style={styles.imageWrapper}>
                       {item.image ? (
                         <Image
@@ -210,7 +206,7 @@ export default function ClientProfile() {
                       )}
                     </View>
 
-                    {/* INFO */}
+                    
                     <View style={styles.infoBox}>
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{item.title}</Text>
@@ -264,7 +260,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
 
-  /* HEADER */
+  
   header: {
     flexDirection: "row",
     alignItems: "center",

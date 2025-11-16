@@ -1,4 +1,4 @@
-// app/(client)/home.jsx
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -60,7 +60,7 @@ export default function ClientHome() {
     setSelected(null);
   };
 
-  // 🔥 REALTIME LOAD PRODUCTS (jo më getDocs)
+  
   useEffect(() => {
     setLoading(true);
     setError("");
@@ -86,7 +86,7 @@ export default function ClientHome() {
     return unsub;
   }, []);
 
-  // WATCH CART
+  
   useEffect(() => {
     if (!user) return;
 
@@ -99,7 +99,7 @@ export default function ClientHome() {
     return unsub;
   }, [user]);
 
-  // helper për të zgjedh source-in e fotos (base64 ose url)
+  
   const getImageSource = (item) => {
     if (item.imageBase64) {
       return { uri: `data:image/jpeg;base64,${item.imageBase64}` };
@@ -110,7 +110,7 @@ export default function ClientHome() {
     return null;
   };
 
-  // ADD TO CART
+ 
   const handleAddToCart = async (product) => {
     if (!user) return;
     if (addedProducts.includes(product.id)) return;
@@ -122,7 +122,7 @@ export default function ClientHome() {
           productId: product.id,
           name: product.name,
           price: product.price,
-          // ruaj edhe base64 edhe url, për çdo rast
+          
           imageBase64: product.imageBase64 || null,
           imageUrl: product.imageUrl || null,
           category: product.category || null,
@@ -141,11 +141,11 @@ export default function ClientHome() {
     }
   };
 
-  // FILTER BY CATEGORY + STATUS
+ 
 const filteredProducts = products
-  // 1) shfaq vetëm produktet që janë available
+  
   .filter((p) => !p.status || p.status === "available")
-  // 2) pastaj filtro sipas kategorisë
+  
   .filter((p) => {
     if (selectedCategory === "All") return true;
     const cat = (p.category || "Other").toLowerCase();
@@ -153,7 +153,7 @@ const filteredProducts = products
   });
 
 
-  // RENDER CATEGORY
+
   const renderCategory = ({ item }) => {
     const isSelected = selectedCategory === item.name;
     return (
@@ -231,7 +231,7 @@ const filteredProducts = products
           </Text>
         </View>
 
-        {/* CATEGORY */}
+       
         <View style={styles.catSection}>
           <Text style={styles.catTitle}>Category</Text>
           <View style={styles.catUnderline} />
@@ -287,7 +287,7 @@ const filteredProducts = products
         )}
       </ScrollView>
 
-      {/* MODAL */}
+    
       <Modal visible={modalVisible} transparent animationType="slide">
         <Pressable style={styles.backdrop} onPress={closeModal}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
