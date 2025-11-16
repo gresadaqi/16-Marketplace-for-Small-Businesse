@@ -65,7 +65,6 @@ export default function LoginScreen() {
   const handleGithub = async () => {
     setError("");
 
-    // Firebase GitHub popup works on web. On native it won't.
     if (Platform.OS !== "web") {
       setError("GitHub login is only available on web in this demo.");
       return;
@@ -79,7 +78,6 @@ export default function LoginScreen() {
 
       const result = await signInWithPopup(auth, provider);
 
-      // Try to read user role from Firestore
       const userRef = doc(db, "users", result.user.uid);
       const snap = await getDoc(userRef);
       const data = snap.exists() ? snap.data() : null;
@@ -133,7 +131,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Email / password login */}
+          {}
           <TouchableOpacity
             style={styles.button}
             onPress={handleLogin}
@@ -146,7 +144,7 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          {/* GitHub login */}
+          {}
           <TouchableOpacity
             style={[styles.button, styles.githubButton]}
             onPress={handleGithub}
@@ -217,7 +215,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   githubButton: {
-    backgroundColor: "#24292e", // GitHub dark
+    backgroundColor: "#24292e",
   },
   buttonText: {
     color: "#fff",

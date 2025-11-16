@@ -1,4 +1,3 @@
-// app/(bussines)/AddProductScreen.jsx
 import React, { useState } from "react";
 import {
   SafeAreaView,
@@ -9,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../firebase/firebaseConfig"; // ⬅️ VETËM db, JO storage
+import { db } from "../../firebase/firebaseConfig"; 
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "expo-router";
 
@@ -52,7 +51,6 @@ const handleAdd = async (data) => {
     return;
   }
 
-  // 🔥 mbrojtje extra: mos lejo më shumë se ~600k karaktere
   if (imageBase64 && imageBase64.length > 600000) {
     Alert.alert(
       "Image too large",
@@ -91,7 +89,7 @@ const handleAdd = async (data) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {}
       <View style={styles.headerRow}>
         <Header />
         <ProfileIcon onPress={() => console.log("Profile clicked")} />

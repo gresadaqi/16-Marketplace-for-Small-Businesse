@@ -1,4 +1,3 @@
-// app/(business)/home.jsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -31,7 +30,6 @@ const BEIGE = "#F7E7C8";
 const CHIP_BROWN = "#462E23";
 const CARD_BORDER = "#2E6E3E";
 
-// të njëjtat kategori si në HomeScreen
 const CATEGORIES = [
   { id: 1, name: "All", icon: require("../../assets/all.png.png") },
   { id: 2, name: "Clothes", icon: require("../../assets/tshirt.png") },
@@ -53,14 +51,12 @@ export default function BusinessHome() {
   const [selected, setSelected] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editCategory, setEditCategory] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  // filtër kategorish – default All
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const openModal = (item) => {
@@ -79,7 +75,6 @@ export default function BusinessHome() {
     setIsEditing(false);
   };
 
-  // 🔥 Realtime listener për produktet e biznesit
   useEffect(() => {
     if (!user) {
       setProducts([]);
@@ -128,8 +123,6 @@ export default function BusinessHome() {
 
       await updateDoc(doc(db, "products", selected.id), updated);
 
-      // s'ka nevojë me update manual listën – onSnapshot e bën vet,
-      // por i mbajmë edhe lokalisht modal-in in sync:
       setSelected((prev) => (prev ? { ...prev, ...updated } : prev));
       setIsEditing(false);
     } catch (e) {
@@ -140,21 +133,18 @@ export default function BusinessHome() {
   const handleDelete = async (product) => {
     try {
       await deleteDoc(doc(db, "products", product.id));
-      // s'ka nevojë me setProducts këtu – onSnapshot e përditëson automatikisht
       if (selected?.id === product.id) closeModal();
     } catch (e) {
       console.log(e);
     }
   };
 
-  // filtro produktet sipas kategorisë së zgjedhur
   const filteredProducts = products.filter((p) => {
     if (selectedCategory === "All") return true;
     const cat = (p.category || "Other").toLowerCase();
     return cat === selectedCategory.toLowerCase();
   });
 
-  // helper për ta marrë source-in e imazhit (base64 ose url)
   const getImageSource = (item) => {
     if (item.imageBase64) {
       return { uri: `data:image/jpeg;base64,${item.imageBase64}` };
@@ -165,7 +155,6 @@ export default function BusinessHome() {
     return null;
   };
 
-  // dizajni i kategorive njësoj si HomeScreen
   const renderCategory = ({ item }) => {
     const isSelected = selectedCategory === item.name;
     return (
@@ -195,7 +184,6 @@ export default function BusinessHome() {
     );
   };
 
-  // box i produktit – me emrin e biznesit
   const renderItem = ({ item }) => {
     const imgSrc = getImageSource(item);
 
@@ -301,7 +289,7 @@ export default function BusinessHome() {
         )}
       </ScrollView>
 
-      {/* MODAL: EDIT + DELETE, me emrin e biznesit */}
+      {}
       <Modal
         visible={modalVisible}
         transparent
@@ -437,7 +425,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "700", color: GREEN },
   subtitle: { fontSize: 14, color: "#555", marginTop: 4 },
 
-  /* CATEGORY – si në HomeScreen */
   catSection: { paddingHorizontal: 16, marginTop: 6, marginBottom: 10 },
   catTitle: { fontSize: 18, color: "#2E6E3E", fontWeight: "bold" },
   catUnderline: {
@@ -495,7 +482,6 @@ const styles = StyleSheet.create({
   gridList: { paddingHorizontal: 12, paddingBottom: 24 },
   gridRow: { justifyContent: "space-between", marginBottom: 14 },
 
-  // box-at e produkteve
   productCard: {
     borderRadius: 15,
     margin: 5,
