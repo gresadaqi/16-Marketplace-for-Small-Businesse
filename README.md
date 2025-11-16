@@ -51,14 +51,14 @@ Qëllimi i këtij projekti është të **ndihmojë bizneset e vogla lokale në K
 duke u ofruar atyre një platformë tregtare të qasshme dhe të thjeshtë që **nuk kërkon njohuri teknike apo kosto të larta zhvillimi**.
 
 
-## Phase II implementation notes
+## Shënime për zbatimin e Fazës II
 
-- Navigation migrated to **Expo Router** with `(auth)`, `(client)` and `(business)` route groups.
-- Authentication implemented with **Firebase Authentication**:
-  - Email/password
-  - Google provider via `expo-auth-session` + `GoogleAuthProvider`
-- Role-based users (client/business) stored in Firestore collection `users`.
-- Firestore CRUD examples:
-  - Businesses can create and delete products in `products` collection.
-  - Clients can add items to their `cart` subcollection and remove them.
-- UI has been refreshed with consistent green / beige palette and tab navigation for each role.
+- Navigimi u migrua në **Expo Router** me grupet e rrugëve `(auth)`, `(client)` dhe `(business)`.
+- Autentifikimi u zbatua me **Firebase Authentication**:
+- Email/fjalëkalim
+- Ofruesi i Google nëpërmjet `expo-auth-session` + `GoogleAuthProvider`
+- Përdorues të bazuar në role (klient/biznes) të ruajtur në koleksionin Firestore `users`.
+- Shembuj Firestore CRUD:
+- Bizneset mund të krijojnë dhe fshijnë produkte në koleksionin `products`.
+- Klientët mund të shtojnë artikuj në nënkoleksionin e tyre `cart` dhe t'i heqin ato.
+- Ndërfaqja e përdoruesit është rifreskuar me paletë të qëndrueshme jeshile/bezhë dhe navigim me skeda për secilin rol.
