@@ -117,13 +117,35 @@ export default function BusinessProfile() {
     return null;
   };
 
+  // 🔧 helper për me përditësu statusin e produkteve të një order-i
+const updateProductsStatus = async (order, newStatus) => {
+  try {
+    const items = order.items || [];
+    for (const it of items) {
+      const productId = it.productId;
+      if (!productId) continue;
+
+      try {
+        await updateDoc(doc(db, "products", productId), {
+          status: newStatus,
+          updatedAt: serverTimestamp(),
+        });
+      } catch (e) {
+        console.log("updateProductsStatus error for", productId, e);
+      }
+    }
+  } catch (e) {
+    console.log("updateProductsStatus outer error:", e);
+  }
+};
+
   // -------- CONFIRM / CANCEL ----------
 
-  const confirmOrder = async (order) => {
+   const confirmOrder = async (order) => {
     if (!user) return;
 
     try {
-      // biz order
+      // 1) update business order status -> completed
       const businessRef = doc(
         db,
         "businessOrders",
@@ -137,69 +159,77 @@ export default function BusinessProfile() {
         updatedAt: serverTimestamp(),
       });
 
-      // user order
+      // 2) update order te klienti
       if (!order.userId) {
         console.log("confirmOrder: missing userId on order", order.id);
-        return;
-      }
+        // edhe nëse s'kemi userId, prap e bojmë sold produktin
+      } else {
+        let userOrderId = order.userOrderId || (await findUserOrderId(order));
 
-      let userOrderId = order.userOrderId || (await findUserOrderId(order));
+        if (userOrderId) {
+          try {
+            const userOrderRef = doc(
+              db,
+              "users",
+              order.userId,
+              "orders",
+              userOrderId
+            );
 
-      if (userOrderId) {
-        try {
-          const userOrderRef = doc(
-            db,
-            "users",
-            order.userId,
-            "orders",
-            userOrderId
-          );
-
-          await updateDoc(userOrderRef, {
-            status: "completed",
-            businessId: user.uid,
-            businessEmail: user.email,
-            updatedAt: serverTimestamp(),
-          });
-        } catch (err) {
-          console.log("confirmOrder: error updating user order:", err);
+            await updateDoc(userOrderRef, {
+              status: "completed",
+              businessId: user.uid,
+              businessEmail: user.email,
+              updatedAt: serverTimestamp(),
+            });
+          } catch (err) {
+            console.log("confirmOrder: error updating user order:", err);
+          }
         }
       }
+
+      // 3) ✅ produktet -> sold (mos me u pa kurrë më)
+      await updateProductsStatus(order, "sold");
     } catch (e) {
       console.log("Error confirming order:", e);
     }
   };
 
-  const cancelOrder = async (order) => {
-    if (!user) return;
+const cancelOrder = async (order) => {
+  if (!user) return;
 
-    try {
-      const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
-      await updateDoc(ref, {
-        status: "cancelled",
-        updatedAt: serverTimestamp(),
-      });
+  try {
+    // 1) update biznes order
+    const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
+    await updateDoc(ref, {
+      status: "cancelled",
+      updatedAt: serverTimestamp(),
+    });
 
-      if (order.userId) {
-        let userOrderId = order.userOrderId || (await findUserOrderId(order));
-        if (userOrderId) {
-          const userOrderRef = doc(
-            db,
-            "users",
-            order.userId,
-            "orders",
-            userOrderId
-          );
-          await updateDoc(userOrderRef, {
-            status: "cancelled",
-            updatedAt: serverTimestamp(),
-          });
-        }
+    // 2) (opsionale) update edhe user order -> cancelled
+    if (order.userId) {
+      let userOrderId = order.userOrderId || (await findUserOrderId(order));
+      if (userOrderId) {
+        const userOrderRef = doc(
+          db,
+          "users",
+          order.userId,
+          "orders",
+          userOrderId
+        );
+        await updateDoc(userOrderRef, {
+          status: "cancelled",
+          updatedAt: serverTimestamp(),
+        });
       }
-    } catch (e) {
-      console.log("Error cancelling order:", e);
     }
-  };
+
+    // 3) ✅ produktet kthehen 'available' që me u pa prap në shop
+    await updateProductsStatus(order, "available");
+  } catch (e) {
+    console.log("Error cancelling order:", e);
+  }
+};
 
   // 🔥 KËTU: kthe krejt emrat e produkteve si string
   const getProductsText = (order) => {

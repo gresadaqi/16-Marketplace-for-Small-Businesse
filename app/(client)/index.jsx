@@ -141,12 +141,17 @@ export default function ClientHome() {
     }
   };
 
-  // FILTER BY CATEGORY
-  const filteredProducts = products.filter((p) => {
+  // FILTER BY CATEGORY + STATUS
+const filteredProducts = products
+  // 1) shfaq vetëm produktet që janë available
+  .filter((p) => !p.status || p.status === "available")
+  // 2) pastaj filtro sipas kategorisë
+  .filter((p) => {
     if (selectedCategory === "All") return true;
     const cat = (p.category || "Other").toLowerCase();
     return cat === selectedCategory.toLowerCase();
   });
+
 
   // RENDER CATEGORY
   const renderCategory = ({ item }) => {

@@ -73,6 +73,7 @@ const handleAdd = async (data) => {
       ownerId: user.uid,
       ownerEmail: user.email,
       ownerName: user.displayName || "Business",
+      status: "available", 
       createdAt: new Date().toISOString(),
     });
 

@@ -19,6 +19,7 @@ import {
   doc,
   addDoc,
   serverTimestamp,
+  updateDoc,   
 } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useAuth } from "../components/AuthProvider";
@@ -222,6 +223,59 @@ export default function CartScreen() {
         );
       }
 
+            // 4) order për secilin biznes
+      for (const businessId of businessIds) {
+        const businessItems = byBusiness[businessId];
+
+        const businessOrderData = {
+          userId: user.uid,
+          userEmail: user.email,
+          items: businessItems,
+          total: businessItems.reduce(
+            (sum, it) => sum + (Number(it.price) || 0),
+            0
+          ),
+          address,
+          phone,
+          paymentMethod: "cash_on_delivery",
+          status: "pending",
+          createdAt: serverTimestamp(),
+          userOrderId: userOrderRef.id, // 🔗 lidhet me order te klientit
+        };
+
+        console.log(
+          "Saving business order for:",
+          businessId,
+          businessOrderData
+        );
+
+        await addDoc(
+          collection(db, "businessOrders", businessId, "orders"),
+          businessOrderData
+        );
+      }
+
+      // 5) ✅ vendos produktet si "reserved" që mos me dal më në Home
+      for (const it of preparedItems) {
+        if (!it.productId) continue;
+        try {
+          await updateDoc(doc(db, "products", it.productId), {
+            status: "reserved",
+          });
+        } catch (e) {
+          console.log("Failed to set product reserved", it.productId, e);
+        }
+      }
+
+      // 6) fshij artikujt nga cart
+      for (const it of items) {
+        try {
+          await deleteDoc(doc(db, "users", user.uid, "cart", it.id));
+        } catch (e) {
+          console.log("Failed to delete cart item", it.id, e);
+        }
+      }
+
       // 5) fshij artikujt nga cart
       for (const it of items) {
         try {
@@ -248,6 +302,7 @@ export default function CartScreen() {
     }
   };
 
+  
   // ---------------- UI ----------------
   return (
     <SafeAreaView style={styles.safeArea}>
