@@ -87,7 +87,6 @@ export default function BusinessProfile() {
   const findUserOrderId = async (order) => {
     if (!order.userId) return null;
 
-    // nëse order e ka userOrderId, kthe direkt
     if (order.userOrderId) return order.userOrderId;
 
     try {
@@ -124,7 +123,7 @@ export default function BusinessProfile() {
     if (!user) return;
 
     try {
-      // 1) update business order status -> completed
+      // biz order
       const businessRef = doc(
         db,
         "businessOrders",
@@ -138,7 +137,7 @@ export default function BusinessProfile() {
         updatedAt: serverTimestamp(),
       });
 
-      // 2) update order te klienti
+      // user order
       if (!order.userId) {
         console.log("confirmOrder: missing userId on order", order.id);
         return;
@@ -175,14 +174,12 @@ export default function BusinessProfile() {
     if (!user) return;
 
     try {
-      // 1) update biznes order
       const ref = doc(db, "businessOrders", user.uid, "orders", order.id);
       await updateDoc(ref, {
         status: "cancelled",
         updatedAt: serverTimestamp(),
       });
 
-      // 2) (opsionale) update edhe user order -> cancelled
       if (order.userId) {
         let userOrderId = order.userOrderId || (await findUserOrderId(order));
         if (userOrderId) {
@@ -204,6 +201,14 @@ export default function BusinessProfile() {
     }
   };
 
+  // 🔥 KËTU: kthe krejt emrat e produkteve si string
+  const getProductsText = (order) => {
+    const items = order.items || [];
+    if (!items.length) return "—";
+    const names = items.map((it) => it?.name || "Product");
+    return names.join(", ");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
@@ -218,9 +223,7 @@ export default function BusinessProfile() {
             </View>
 
             <View style={styles.infoContainer}>
-              <Text style={styles.nameText}>
-                {businessName}
-              </Text>
+              <Text style={styles.nameText}>{businessName}</Text>
               <Text style={styles.emailText}>
                 {user?.email || "email@example.com"}
               </Text>
@@ -310,6 +313,12 @@ export default function BusinessProfile() {
                             </Text>
                           </View>
 
+                          {/* 👉 KREJT EMRAT E PRODUKTEVE */}
+                          <Text style={styles.infoText}>
+                            <Text style={styles.infoLabel}>Products: </Text>
+                            {getProductsText(order)}
+                          </Text>
+
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Address: </Text>
                             {order.address}
@@ -362,6 +371,12 @@ export default function BusinessProfile() {
                               From: {order.userEmail || "Client"}
                             </Text>
                           </View>
+
+                          {/* 👉 KREJT EMRAT E PRODUKTEVE */}
+                          <Text style={styles.infoText}>
+                            <Text style={styles.infoLabel}>Products: </Text>
+                            {getProductsText(order)}
+                          </Text>
 
                           <Text style={styles.infoText}>
                             <Text style={styles.infoLabel}>Address: </Text>
